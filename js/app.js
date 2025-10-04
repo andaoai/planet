@@ -472,7 +472,7 @@ const app = {
           drawMoon(time, (px, py) => {
             context.beginPath();
             context.arc(px, py, 1, 0, 2 * Math.PI);
-            context.style = 'rgb(0,0,0)';
+            context.style = 'rgb(200,200,200)';
             context.fillStyle = 'gray';
             context.fill();
           })
@@ -536,7 +536,7 @@ const app = {
           context.beginPath();
           const r = (settings.s.guijiMode ? 0.3 : planet_radius[symbol]) * radius;
           context.arc(px, py, r, 0, 2 * Math.PI);
-          context.style = 'rgb(0,0,0)';
+          context.style = 'rgb(200,200,200)';
           context.fillStyle = planet_color[symbol];
           context.fill();
         }
@@ -1028,11 +1028,11 @@ const app = {
         }
       }
       if (settings.s.show28Xiu && settings.s.faceMode && !settings.s.guijiMode) {
-        let r1 = rx - 20;
+        let r1 = rx - 35;
         let r2 = settings.s.show28XiuArea ? 0 : r1 + 10;
         context.font = '15px monospace';
         let width = context.measureText('角').width/2;
-        let colors = ['rgb(17,127,120)', 'rgb(0,0,0)', 'rgb(150,180,180)', 'rgb(200,80,80)']
+        let colors = ['rgb(17,127,120)', 'rgb(180,180,180)', 'rgb(150,180,180)', 'rgb(200,80,80)']
         context.beginPath();
         context.arc(cx, cy, r1, 0, 2 * Math.PI);
         context.strokeStyle = 'rgb(130,100,230)';
@@ -1067,15 +1067,15 @@ const app = {
         // let sum = 0;
         for (let i = 0; i < x28cj.length; i++) {
           let cj = x28cj[i] / (24 * 3600) * 2 * Math.PI + southAngle;
-          dt1 = rx * Math.cos(cj) * xx;
-          dt2 = rx * Math.sin(cj);
+          dt1 = (rx - 15) * Math.cos(cj) * xx;
+          dt2 = (rx - 15) * Math.sin(cj);
           context.fillStyle = colors[parseInt(i / 7)];
           context.font = '15px monospace';
           context.fillText(x28n[i], cx + dt1 - width, cy - dt2 + 5);
           // 宿度总度
           context.font = '10px monospace';
-          dt1 = (rx+25) * Math.cos(cj) * xx;
-          dt2 = (rx+25) * Math.sin(cj);
+          dt1 = (rx + 10) * Math.cos(cj) * xx;
+          dt2 = (rx + 10) * Math.sin(cj);
           // sum += parseFloat(x28s[i]);
           context.fillText(x28s[i], cx + dt1 - context.measureText(x28s[i]).width/2, cy + dt2 + 5);
           // 标注大刻度
@@ -1151,7 +1151,7 @@ const app = {
           }
           context.beginPath();
           context.arc(px, py, starR, 0, 2 * Math.PI);
-          context.fillStyle = 'rgb(0,0,0)';
+          context.fillStyle = 'rgb(200,200,200)';
           if(i == 1 || i == 8)context.fillStyle = 'rgb(224,80,40)';
           if(py > groundY && i < 8)context.fillStyle = downColor;
           context.fill();
@@ -1176,6 +1176,14 @@ const app = {
           for(let j = 0; j < starList.length; j++){
             xys = [];
             let starX = starList[j];
+
+            // 为特定星宿增加半径偏移，避免与28宿圈叠加
+            // 角宿、亢宿、虚宿、危宿、觜宿、参宿需要更大的半径
+            let extraRadius = 0;
+            if(j >= 1 && j <= 6) { // 角宿到参宿
+              extraRadius = 25; // 增加25像素半径，避免超出画布
+            }
+
             // 绘制星点
             for(let i = 0; i < starX.pos.length; i++){
               Astronomy.DefineStar('Other', ...starX.pos[i]);
@@ -1194,8 +1202,9 @@ const app = {
               if(settings.s.BeiDouFaceSouth) jd = -jd;
               let yy = settings.s.faceNorthImage ? 1 : xx;
               let wd = 1 + yy*lat/90 + (settings.s.useEcliptic ? -0.05 : 0);//equ.dec < 0 ? 1.2 + equ.dec/90 : 1 - equ.dec/90;
-              let x = -r_bd * wd * Math.cos(jd);
-              let y = -r_bd * wd * Math.sin(jd);
+              let currentRadius = r_bd + extraRadius;
+              let x = -currentRadius * wd * Math.cos(jd);
+              let y = -currentRadius * wd * Math.sin(jd);
               if(settings.s.BeiDouFaceSouth)[x, y] = [-x, -y];
               // console.log('BD' + i, x, y);
               let px = cx + x*ratio;
@@ -1203,7 +1212,7 @@ const app = {
               xys.push([px,py]);
               context.beginPath();
               context.arc(px, py, j == starList.length - 2 ? 0.8 : starR, 0, 2 * Math.PI);
-              context.fillStyle = 'rgb(0,0,0)';
+              context.fillStyle = 'rgb(200,200,200)';
               if(i == 0)context.fillStyle = 'rgb(224,80,40)';
               context.fill();
             }
@@ -1284,7 +1293,7 @@ const app = {
       context.arc(cx, cy, crossPixels, 0, 2 * Math.PI);
       context.strokeStyle = 'rgb(35,66,121)';
       context.stroke();
-      // context.style = 'rgb(0,0,0)';
+      // context.style = 'rgb(200,200,200)';
       context.fillStyle = '#e0e0e0';
       context.fill();
 
