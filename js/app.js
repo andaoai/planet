@@ -1,11 +1,13 @@
 // 天体图文应用主脚本
 let { ref, reactive, toRefs, onMounted, watch } = Vue;
+
 Array.prototype.at = function(idx) {
   return this[idx < 0 ? this.length + idx : idx];
 }
 const app = {
   setup() {
-    const ryear = 365.25;
+    const { PLANETS, CALENDAR, DRAWING, DEFAULT_SETTINGS, DEFAULT_POSITION, COMMON_STARS, PHYSICS, CALCULATION } = window.ASTRONOMY_CONFIG;
+    const ryear = CALENDAR.TROPICAL_YEAR;
     function Pad(s, w) {
       s = s.toFixed(0);
       while (s.length < w) {
@@ -38,34 +40,7 @@ const app = {
 
     // 基础数据
     let settings = localStorage.getItem('settings');
-    let defaults = {
-        s:{
-          faceMode: true,  // 是否正面图
-          guijiMode: false, // 是否轨迹图
-          show24Jieqi: true,
-          show24JieqiClockwise: true,
-          show24JieqiArea: false,
-          show28Xiu: true,
-          use360: true,
-          show28XiuArea: false,
-          showDouJian: true,
-          showYueJian: true,
-          show10Yueli: true,
-          showLine: false,
-          showPlanetData: true,
-          showDirection: true,
-          showSunPlanetTrack: false,
-          showNowString: true,
-          southUp: false,
-          useEcliptic: false,
-          BeiDouFaceSouth: true,
-          showPlanetDistance: false,
-          faceNorthImage: true,
-          useDecAndElipticInNoDistanceMode: false,
-          onlyShow7Yao: false,
-          showHorRing: true,
-        }
-      }
+    let defaults = { s: DEFAULT_SETTINGS };
     if (!settings) {
       settings = reactive(defaults)
     } else {
@@ -83,10 +58,7 @@ const app = {
     }
     let position = localStorage.getItem('position');
     if(!position) {
-      position = reactive({
-        s: { latitude: 27.8, longitude: 113.1, altitude: 100 }
-        }
-      );
+      position = reactive({ s: DEFAULT_POSITION });
     }else{
       position = reactive(JSON.parse(position));
     }
@@ -98,16 +70,7 @@ const app = {
       position.s[k] = v;
     }
     // 行星距离表
-    const planetDist = {
-      '水星': 0.3871,
-      '金星': 0.7233,
-      '火星': 1.5237,
-      '木星': 5.2028,
-      '土星': 9.5388,
-      '天王星': 19.1914,
-      '海王星': 30.0611,
-      '冥王星': 30,
-    }
+    const planetDist = PLANETS.DISTANCE;
     const planetDistMin = {};
     const planetDistMax = {};
     for (let k in planetDist) {
@@ -116,35 +79,7 @@ const app = {
       planetDistMax[k] = planetDist[k] + 1 - min;
     }
     // 28宿赤经数据
-    const x28cj = [13 * 3600 + 26 * 60 + 24.28, // 角
-      14 * 3600 + 14 * 60 + 7.11, // 亢
-      14 * 3600 + 52 * 60 + 8.56, // 氐
-      16 * 3600 + 0 * 60 + 13.65, // 房
-      16 * 3600 + 22 * 60 + 34.11, // 心
-      16 * 3600 + 51 * 60 + 37.67, // 尾
-      18 * 3600 + 7 * 60 + 15.29, // 箕
-      18 * 3600 + 47 * 60 + 3.57, // 斗  天同
-      20 * 3600 + 22 * 60 + 16.35, // 牛
-      20 * 3600 + 48 * 60 + 53.46, // 女
-      21 * 3600 + 32 * 60 + 44.46, // 虚
-      22 * 3600 + 6 * 60 + 56.32, // 危
-      23 * 3600 + 5 * 60 + 52.98, // 室
-      0 * 3600 + 14 * 60 + 24.21, // 壁
-      0 * 3600 + 48 * 60 + 32.71, // 奎
-      1 * 3600 + 55 * 60 + 54.27, // 娄
-      2 * 3600 + 44 * 60 + 48.1, // 胃
-      3 * 3600 + 46 * 60 + 14.82, // 昴
-      4 * 3600 + 29 * 60 + 58.12, // 毕
-      5 * 3600 + 36 * 60 + 5.75, // 觜
-      5 * 3600 + 41 * 60 + 55.95, // 参
-      6 * 3600 + 24 * 60 + 22.01, // 井
-      8 * 3600 + 32 * 60 + 55.36, // 鬼
-      8 * 3600 + 38 * 60 + 53.34, // 柳
-      9 * 3600 + 28 * 60 + 43.94, // 星
-      9 * 3600 + 52 * 60 + 35.94, // 张
-      11 * 3600 + 0 * 60 + 54.37, // 翼
-      12 * 3600 + 16 * 60 + 59.8, // 轸
-    ];
+    let x28cj = [...CALENDAR.XIU_28_BASE_RA];
     let x28a = [];
     for (let z = 0; z < 28; z++) {
       let next = z + 1;
@@ -157,7 +92,7 @@ const app = {
       x28a.push(ff);
     }
     // console.log(x28a2);
-    const x28n = '角亢氐房心尾箕斗牛女虚危室壁奎娄胃昴毕觜参井鬼柳星张翼轸';
+    const x28n = CALENDAR.XIU_28_NAMES;
 
     function resetX28a(){
       let x28a = [];
@@ -305,18 +240,7 @@ const app = {
 
       // let beta = Math.sin(hor.azimuth/360*2*Math.PI)*Math.cos(hor.altitude/360*2*Math.PI);
       // equ_ofdate.ta = 24 - Math.asin(beta) / (2*Math.PI) * 24;
-      equ_ofdate.body = {
-        'Moon': '月亮',
-        'Sun': '太阳',
-        'Mercury': '水星',
-        'Venus': '金星',
-        'Mars': '火星',
-        'Jupiter': '木星',
-        'Saturn': '土星',
-        'Uranus': '天王星',
-        'Neptune': '海王星',
-        'Pluto': '冥王星',
-      }[body];
+      equ_ofdate.body = PLANETS.CHINESE_NAMES[body];
       // console.log(body, equ_ofdate);
       return equ_ofdate;
     }
@@ -386,44 +310,11 @@ const app = {
     }
 
     // 行星绘图
-    const PlanetOrbitScale = 6.0;
-    const crossPixels = 8;
-    const planet_color = {
-      '太阳': 'rgb(255,0,0)',
-      '水星': 'rgb(0,0,0)',
-      '金星': 'rgb(200,200,150)',
-      '火星': 'rgb(200,50,50)',
-      '木星': 'rgb(0,200,200)',
-      '土星': 'rgb(254,201,10)',
-      '天王星': 'rgb(98,137,152)',
-      '海王星': 'rgb(54,99,161)',
-      '冥王星': 'rgb(54,80,110)',
-      '月亮': 'rgb(250,123,0)' //'rgb(160,160,108)',
-    }
-    const planet_radius = {
-      '太阳': 1.6,
-      '水星': 0.8,
-      '金星': 1,
-      '火星': 1,
-      '木星': 1.6,
-      '土星': 1.3,
-      '天王星': 1.2,
-      '海王星': 1.2,
-      '冥王星': 0.8,
-      '月亮': 1.1,
-    }
-    const radius_ratio = {
-      '太阳': 1,
-      '水星': 1,
-      '金星': 1,
-      '火星': 1,
-      '木星': 2.8 / 5.2, // 原来为2.5
-      '土星': 3.5 / 9,
-      '天王星': 4.9 / 19,
-      '海王星': 5.5 / 30,
-      '冥王星': 6 / 40,
-      '月亮': 70,
-    }
+    const PlanetOrbitScale = DRAWING.ORBIT_SCALE;
+    const crossPixels = DRAWING.CENTER.CROSS_PIXELS;
+    const planet_color = PLANETS.COLORS;
+    const planet_radius = PLANETS.RADII;
+    const radius_ratio = PLANETS.RADIUS_RATIO;
 
     function rotateXY(x, y, angle){
       let rr = Math.sqrt(x*x + y*y);
@@ -915,12 +806,12 @@ const app = {
       }
     }
 
-    const gan0 = 0; // 甲年甲月
-    const di0 = 2;  // 寅年寅月
-    const initDay = new Date(1962, 1, 5);
-    const tiangan = '甲乙丙丁戊己庚辛壬癸'.split('');
-    const dizhi = '子丑寅卯辰巳午未申酉戌亥'.split('');
-    const dayMicroSeconds = 3600 * 24 * 1000;
+    const gan0 = CALENDAR.TIANGAN_BASE; // 甲年甲月
+    const di0 = CALENDAR.DIZHI_BASE;  // 寅年寅月
+    const initDay = CALENDAR.EPOCH_DATE;
+    const tiangan = CALENDAR.TIANGAN;
+    const dizhi = CALENDAR.DIZHI;
+    const dayMicroSeconds = CALENDAR.DAY_MILLISECONDS;
     function getOriginOffset(){
       return parseInt((getPureDate(now.value) - initDay) / dayMicroSeconds);
     }
@@ -993,10 +884,11 @@ const app = {
 
     function resetCanvas() {
       // console.log(window.innerWidth)
-      let width = settings.s.showPlanetDistance ? (settings.s.onlyShow7Yao ? 1300 : 1800)
-                  : 1100;
-      graph.width = Math.max(width, 2300);
-      graph.height = 1200;
+      let width = settings.s.showPlanetDistance ?
+                  (settings.s.onlyShow7Yao ? DRAWING.CANVAS.WIDTH_7YAO : DRAWING.CANVAS.WIDTH_DISTANCE)
+                  : DRAWING.CANVAS.WIDTH_DEFAULT;
+      graph.width = Math.max(width, DRAWING.CANVAS.MAX_WIDTH);
+      graph.height = DRAWING.CANVAS.HEIGHT;
     }
     function draw24jq(context, cx, cy, r, clock, southAngle) {
       context.font = '16px monospace';
@@ -1103,13 +995,13 @@ const app = {
         resetCanvas();
       }
       // Draw a cross at the SSB location.
-      const cx = 1300/2; //graph.width / 2;
-      const cy = 1200/2; //graph.height / 2;
-      const r = 315;
+      const cx = DRAWING.CENTER.X; //graph.width / 2;
+      const cy = DRAWING.CENTER.Y; //graph.height / 2;
+      const r = DRAWING.CENTER.RADIUS;
       if(settings.s.showHorRing){
         // 绘制地平圈
-        const rr = r + 20;
-        const cx2 = cx + 2*r + 200;
+        const rr = r + DRAWING.HORIZON.RADIUS_OFFSET;
+        const cx2 = cx + 2*r + DRAWING.HORIZON.CENTER_OFFSET_X;
         context.arc(cx2, cy, rr, 0, 2 * Math.PI);
         context.strokeStyle = 'rgb(50,100,230)';
         context.stroke();
@@ -1158,7 +1050,7 @@ const app = {
         context.fillText(settings.s.BeiDouFaceSouth ? '面南':'面北',
                         cx - context.measureText('面南').width/2, cy - (r-50) + 20);
       }
-      const r24 = r - 20;
+      const r24 = DRAWING.SCALE.R24;
       if (settings.s.show24Jieqi && settings.s.faceMode && !settings.s.guijiMode) {
         let clockWise = settings.s.show24JieqiClockwise || !settings.s.BeiDouFaceSouth;
         draw24jq(context, cx, cy, r, clockWise, southAngle);
@@ -1221,7 +1113,7 @@ const app = {
       }
 
       // 标注28宿（直接用赤经绘图）
-      const rx = r + 40;
+      const rx = DRAWING.SCALE.RX;
       // 先画24节气所在28宿的刻度
       if(!settings.s.guijiMode){
         for(let i = 0; i < 24; i++){
@@ -1635,10 +1527,10 @@ const app = {
       // 晨昏蒙影
       if(settings.s.faceMode && !settings.s.showPlanetDistance && !settings.s.guijiMode){
         const sun = info.value.find(x => x.body == '太阳');
-        const sunR = 695700.0;
+        const sunR = PHYSICS.SUN_RADIUS;
         const sita = sunR / Astronomy.KM_PER_AU / sun.dist / Math.PI * 180;
         // console.log(sita);
-        const future = 1.2;
+        const future = CALCULATION.TIME_SEARCH_FUTURE;
         let up0 = Astronomy.SearchAltitude('Sun',observer,1,now.value, future, -sita);
         let down18 = Astronomy.SearchAltitude('Sun',observer,-1,now.value, future, -18);
         let nn = new Date(now.value);
@@ -1825,55 +1717,7 @@ const app = {
       }
 
       // 数据修正时间：2023/1/22 20:36:00
-      stars.value = [{
-        name: '角宿一',
-        ra: (13 * 3600 + 26 * 60 + 24.19) / 3600,
-        dec: -(11 + 16 / 60 + 51.2 / 3600)
-      }, {
-        name: '大角',
-        ra: (14 * 3600 + 16 * 60 + 42.53) / 3600,
-        dec: (19 + 3 / 60 + 31.4 / 3600)
-      }, {
-        name: '大火',
-        ra: (16 * 3600 + 30 * 60 + 47.83) / 3600,
-        dec: -(26 + 28 / 60 + 54.1 / 3600)
-      }, {
-        name: '参宿四·左肩',
-        ra: (5 * 3600 + 56 * 60 + 25.85) / 3600,
-        dec: (7 + 24 / 60 + 37.9 / 3600)
-      }, {
-        name: '北落师门',
-        ra: (22 * 3600 + 58 * 60 + 53.71) / 3600,
-        dec: -(29 + 30 / 60 + 15.4 / 3600)
-      }, {
-        name: '天狼',
-        ra: (6 * 3600 + 46 * 60 + 10.59) / 3600,
-        dec: -(16 + 44 / 60 + 57.5 / 3600)
-      }, {
-        name: '毕宿五',
-        ra: (4 * 3600 + 37 * 60 + 15.02) / 3600,
-        dec: (16 + 33 / 60 + 18.8 / 3600)
-      }, {
-        name: '南河三',
-        ra: (7 * 3600 + 40 * 60 + 31.24) / 3600,
-        dec: (5 + 9 / 60 + 54.5 / 3600)
-      }, {
-        name: '河鼓二·牵牛',
-        ra: (19 * 3600 + 51 * 60 + 52.56) / 3600,
-        dec: (8 + 55 / 60 + 38.6 / 3600)
-      }, {
-        name: '织女',
-        ra: (18 * 3600 + 37 * 60 + 40.93) / 3600,
-        dec: (38 + 48 / 60 + 8.9 / 3600)
-      }, {
-        name: '开阳·武曲',
-        ra: (13 * 3600 + 24 * 60 + 51.55) / 3600,
-        dec: (54 + 48 / 60 + 2.3 / 3600)
-      }, {
-        name: '摇光·破军',
-        ra: (13 * 3600 + 48 * 60 + 26.97) / 3600,
-        dec: (49 + 11 / 60 + 37 / 3600)
-      }].map(s => getCommonStarsRA(s.ra, s.dec, s.name));
+      stars.value = COMMON_STARS.map(s => getCommonStarsRA(s.ra, s.dec, s.name));
     }
 
     function makeInterval(){
@@ -1881,7 +1725,7 @@ const app = {
       now.value = new Date();
       refreshInfo();
       paint();
-    }, 1000);
+    }, CALCULATION.UPDATE_INTERVAL);
     }
 
     let intIdx = makeInterval();
@@ -1893,8 +1737,8 @@ const app = {
       }
     }
 
-    const timeSpan = ref(30);
-    const timeUnit = ref('日');
+    const timeSpan = ref(CALCULATION.DEFAULT_TIME_SPAN);
+    const timeUnit = ref(CALCULATION.DEFAULT_TIME_UNIT);
 
     window.onkeydown = function (event) {
       let k = event.keyCode;
@@ -2293,10 +2137,10 @@ const app = {
       }
     });
 
-    const Y1582_10_15 = new Date(1582,9,15);
-    const Y1500_3_1 = new Date(1500,2,11);
+    const Y1582_10_15 = CALENDAR.GREGORIAN_START;
+    const Y1500_3_1 = CALENDAR.REFORM_START;
     const JulianInit = new Date(1962,1, 5-2437701);
-    const year100Days = 36525;
+    const year100Days = CALENDAR.CENTURY_DAYS;
     function getJulianDate(dd){
       let date = new Date(dd);
       if(date >= Y1582_10_15)return [date,0,0];
