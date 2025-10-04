@@ -231,7 +231,7 @@ const DEFAULT_SETTINGS = {
   faceNorthImage: true,
   useDecAndElipticInNoDistanceMode: false,
   onlyShow7Yao: false,
-  showHorRing: true,
+  showOtherStars: true,
 };
 
 // ==================== 键盘快捷键配置 ====================

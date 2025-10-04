@@ -40,8 +40,7 @@
         <br/><input type="checkbox" id="faceNorthImage" v-model="settings.s.faceNorthImage" /><label for="faceNorthImage">面北时星宿采用面南的左右镜像（否则采用立体投影）</label>
         <br/><input type="checkbox" id="useDecAndElipticInNoDistanceMode" v-model="settings.s.useDecAndElipticInNoDistanceMode" /><label for="useDecAndElipticInNoDistanceMode">(快捷键S)不展示行星距离模式下用赤纬和黄道赤道同时显示(此时太阳在黄道位置略有偏差)</label>
         <br/><input type="checkbox" id="onlyShow7Yao" v-model="settings.s.onlyShow7Yao" /><label for="onlyShow7Yao">只显示七曜</label>
-        <br/><input type="checkbox" id="showHorRing" v-model="settings.s.showHorRing" /><label for="showHorRing">显示地平坐标行星方位图</label>
-        <br/>
+          <br/>
         <button @click="resetCanvas();paint();">刷新显示</button>
         <button @click="saveSettings()" style="margin-left: 8px;">保存设置</button>
       </fieldset>

@@ -542,97 +542,7 @@ const app = {
         }
       }
 
-      // 在地平圈绘制行星
-      // !!!!!!!!!!!!!!!!!!-----地平坐标-----!!!!!!!!!!!!!
-      if(settings.s.showHorRing){
-        // 绘制地平圈
-        const r0 = 315;
-        const rr = r0 + 20;
-        const cx2 = cx + 2*r0 + 200;
-        // console.log(planet);azimuth:方位角,altitude:高度角
-        let sita = (270-planet.hor.azimuth)/180*Math.PI;
-        let ratio = Math.abs(planet.hor.altitude/90);
-        let len = rr - ratio * rr;
-
-        let px = cx2 + len*Math.cos(sita);
-        let py = cy - len*Math.sin(sita);
-        context.strokeStyle = planet_color[symbol];
-        context.beginPath();
-        context.moveTo(px, py);
-        context.lineTo(cx2 + rr*Math.cos(sita), cy - rr*Math.sin(sita));
-        context.stroke();
-        context.fillStyle = planet.hor.altitude < 0 ? '#ddd' : context.strokeStyle;
-        let name = symbol.substr(0,1);
-        context.fillText(name, cx2 + (rr+20)*Math.cos(sita)-context.measureText(name).width/2, cy - (rr+20)*Math.sin(sita)+context.measureText(name).width/2);
-        if(symbol == '月亮'){
-          context.beginPath();
-          let jiajiao = Astronomy.PairLongitude('Moon','Sun',now.value);
-          let direct = angle - Math.PI/2;
-          if(!settings.s.BeiDouFaceSouth)direct = Math.PI - direct;
-          // 半圆
-          ctx.save();
-          ctx.strokeStyle = 'black';
-          ctx.translate(px, py);
-          // console.log(Math.floor(jiajiao/90));
-          if(jiajiao < 90){
-            drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'white', true, 'black');
-            drawCircle(ctx, r, 1, direct, Math.PI/2, Math.PI*3/2, 'black');
-            drawCircle(ctx, r, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, 'black');
-          }else if(jiajiao < 180){
-            jiajiao -= 90;
-            drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'black');
-            drawCircle(ctx, r-1, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, 'white');
-            drawCircle(ctx, r-1, 1, direct, -Math.PI/2, Math.PI/2, 'white');
-          }else if(jiajiao < 270){
-            jiajiao -= 180;
-            drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'black');
-            drawCircle(ctx, r-1, 1, direct, Math.PI/2, Math.PI*3/2, 'white');
-            drawCircle(ctx, r-1, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, 'white');
-          }else{
-            jiajiao -= 270;
-            drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'white', true, 'black');
-            drawCircle(ctx, r, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, 'black');
-            drawCircle(ctx, r, 1, direct, -Math.PI/2, Math.PI/2, 'black');
-          }
-          ctx.restore();
-        }else{
-          if(symbol == '木星'){
-            let s = 20;
-            ctx.drawImage(jupiterImg, px - s/2, py - s/2, s, s);
-          }else if(symbol == '土星'){
-            let s = 20;
-            ctx.drawImage(saturnImg, px - s/2, py - s/2, s, s);
-          }else{
-            context.beginPath();
-            const r = (settings.s.guijiMode ? 0.3 : planet_radius[symbol]) * radius;
-            context.arc(px, py, r, 0, 2 * Math.PI);
-            context.style = 'rgb(0,0,0)';
-            context.fillStyle = planet_color[symbol];
-            context.fill();
-            if(isSun){
-              ctx.save()
-              ctx.translate(px, py);
-              const r = planet_radius[symbol] * radius;
-              let start = r + 3;
-              let end = start + 5;
-              ctx.strokeStyle = '#FF0000';
-              ctx.lineWidth = 1;
-              for(let i = 0; i < 8; i++){
-                let angle = i*Math.PI/4;
-                let cos = Math.cos(angle);
-                let sin = Math.sin(angle);
-                ctx.beginPath();
-                ctx.moveTo(start*cos, start*sin);
-                ctx.lineTo(end*cos, end*sin);
-                ctx.stroke();
-              }
-
-              ctx.restore();
-            }
-          }
-        }
-      }
-
+  
       // 画太阳光芒
       if(isSun && !settings.s.guijiMode){
         ctx.save()
@@ -982,36 +892,6 @@ const app = {
       const cx = DRAWING.CENTER.X; //graph.width / 2;
       const cy = DRAWING.CENTER.Y; //graph.height / 2;
       const r = DRAWING.CENTER.RADIUS;
-      if(settings.s.showHorRing){
-        // 绘制地平圈
-        const rr = r + DRAWING.HORIZON.RADIUS_OFFSET;
-        const cx2 = cx + 2*r + DRAWING.HORIZON.CENTER_OFFSET_X;
-        context.arc(cx2, cy, rr, 0, 2 * Math.PI);
-        context.strokeStyle = 'rgb(50,100,230)';
-        context.stroke();
-        // 画中心十字
-        context.beginPath();
-        context.moveTo(cx2-rr-20, cy);
-        context.lineTo(cx2+rr+20, cy);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(cx2, cy-rr-20);
-        context.lineTo(cx2, cy+rr+20);
-        context.stroke();
-        context.font = '15px monospace';
-        let txt = '天顶(底)';
-        context.fillText(txt, cx2 - context.measureText(txt).width/2, cy + 15);
-        let w = context.measureText('东').width/2;
-        let diff = rr + 20 + w;
-        context.fillText('南',cx2-w,cy-diff);
-        context.fillText('西',cx2+diff,cy+w-2);
-        context.fillText('北',cx2-w,cy+diff+w*2);
-        context.fillText('东',cx2-diff-w*2,cy+w-2);
-        txt = '地平坐标方位图（天圆图，俯视地平）';
-        context.fillText(txt, cx2 - context.measureText(txt).width/2, cy + rr + 100);
-        txt = '圆中心为天顶/底，圆为地平圈, 行星名灰色表示在地下';
-        context.fillText(txt, cx2 - context.measureText(txt).width/2, cy + rr + 120);
-      }
       const xx = settings.s.BeiDouFaceSouth ? 1 : -1;
       let pos = getPosition();
       let observer = new Astronomy.Observer(pos.latitude, pos.longitude, pos.altitude);
@@ -1198,7 +1078,7 @@ const app = {
       }
 
       // 绘制北斗七星
-      if(true && settings.s.faceMode && !settings.s.guijiMode){
+      if(settings.s.faceMode && !settings.s.guijiMode){
         let r_bd = 60;
         let ratio = 6.6;
         let starR = 3;
@@ -1251,7 +1131,7 @@ const app = {
         }
 
         // 绘制其他恒星
-        if(true){
+        if(settings.s.showOtherStars){
           r_bd = r_bd;
 
           // context.beginPath();
