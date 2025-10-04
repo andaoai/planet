@@ -1,19 +1,20 @@
-/* 天体图文应用样式 */
+/* 天体图文应用样式 - 黑暗主题 */
 table {
   border-collapse: collapse;
-  border: 1px solid gray;
+  border: 1px solid #555555;
+  color: #e0e0e0;
 }
 
 td,
 th {
-  border: 1px solid gray;
+  border: 1px solid #555555;
   text-align: center;
   padding-left: 8px;
   padding-right: 8px;
 }
 
 #my {
-  border: 1px solid black;
+  border: 1px solid #404040;
   display: block;
   margin: 0 auto;
 }

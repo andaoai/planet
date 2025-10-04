@@ -323,7 +323,7 @@ const app = {
         ctx.moveTo(0, -r);
         ctx.lineTo(0, r);
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = '#e0e0e0';
         ctx.stroke();
       }
       ctx.restore();
@@ -501,28 +501,28 @@ const app = {
         if(!settings.s.BeiDouFaceSouth)direct = Math.PI - direct;
         // 半圆
         ctx.save();
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = '#e0e0e0';
         ctx.translate(px, py);
         // console.log(Math.floor(jiajiao/90));
         if(jiajiao < 90){
-          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'white', true, 'black');
-          drawCircle(ctx, r, 1, direct, Math.PI/2, Math.PI*3/2, 'black');
-          drawCircle(ctx, r, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, 'black');
+          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, '#e0e0e0', true, '#404040');
+          drawCircle(ctx, r, 1, direct, Math.PI/2, Math.PI*3/2, '#404040');
+          drawCircle(ctx, r, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, '#404040');
         }else if(jiajiao < 180){
           jiajiao -= 90;
-          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'black');
-          drawCircle(ctx, r-1, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, 'white');
-          drawCircle(ctx, r-1, 1, direct, -Math.PI/2, Math.PI/2, 'white');
+          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, '#404040');
+          drawCircle(ctx, r-1, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, '#e0e0e0');
+          drawCircle(ctx, r-1, 1, direct, -Math.PI/2, Math.PI/2, '#e0e0e0');
         }else if(jiajiao < 270){
           jiajiao -= 180;
-          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'black');
-          drawCircle(ctx, r-1, 1, direct, Math.PI/2, Math.PI*3/2, 'white');
-          drawCircle(ctx, r-1, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, 'white');
+          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, '#404040');
+          drawCircle(ctx, r-1, 1, direct, Math.PI/2, Math.PI*3/2, '#e0e0e0');
+          drawCircle(ctx, r-1, 1-jiajiao/90, direct, -Math.PI/2, Math.PI/2, '#e0e0e0');
         }else{
           jiajiao -= 270;
-          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, 'white', true, 'black');
-          drawCircle(ctx, r, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, 'black');
-          drawCircle(ctx, r, 1, direct, -Math.PI/2, Math.PI/2, 'black');
+          drawCircle(ctx, r, 1, 0, 0, 2*Math.PI, '#e0e0e0', true, '#404040');
+          drawCircle(ctx, r, jiajiao/90, direct, Math.PI/2, Math.PI*3/2, '#404040');
+          drawCircle(ctx, r, 1, direct, -Math.PI/2, Math.PI/2, '#404040');
         }
         ctx.restore();
       }else{
@@ -571,7 +571,7 @@ const app = {
         ctx.save();
         ctx.font = '16px monospace';
         let retro = planet.retroState.state == 0;
-        ctx.fillStyle = retro ? 'red' : 'black';
+        ctx.fillStyle = retro ? 'red' : '#e0e0e0';
         if(retro){
           ctx.font = 'bold 16px monospace';
           ctx.strokeStyle = 'red';
@@ -776,13 +776,49 @@ const app = {
     let graph;
     let context;
 
-    function resetCanvas() {
-      // console.log(window.innerWidth)
+    function calculateCanvasSize() {
+      // 获取容器的可用尺寸
+      const container = graph.parentElement;
+      const maxWidth = container.clientWidth - 40; // 减去padding
+      const maxHeight = container.clientHeight - 40; // 减去padding
+
+      // 根据容器大小计算合适的canvas尺寸
       let width = settings.s.showPlanetDistance ?
                   (settings.s.onlyShow7Yao ? DRAWING.CANVAS.WIDTH_7YAO : DRAWING.CANVAS.WIDTH_DISTANCE)
                   : DRAWING.CANVAS.WIDTH_DEFAULT;
-      graph.width = width; // 直接使用配置的宽度，不要强制设为MAX_WIDTH
-      graph.height = DRAWING.CANVAS.HEIGHT;
+      let height = DRAWING.CANVAS.HEIGHT;
+
+      // 如果配置尺寸超过容器，则按比例缩放
+      if (width > maxWidth) {
+        const scale = maxWidth / width;
+        width = maxWidth;
+        height = Math.floor(height * scale);
+      }
+
+      if (height > maxHeight) {
+        const scale = maxHeight / height;
+        height = maxHeight;
+        width = Math.floor(width * scale);
+      }
+
+      return { width, height };
+    }
+
+    function resetCanvas() {
+      const { width, height } = calculateCanvasSize();
+      graph.width = width;
+      graph.height = height;
+
+      // 更新配置中的中心点坐标
+      DRAWING.CENTER.X = width / 2;
+      DRAWING.CENTER.Y = height / 2;
+
+      // 根据画布大小调整基础半径
+      const scale = Math.min(width / DRAWING.CANVAS.WIDTH_DEFAULT, height / DRAWING.CANVAS.HEIGHT);
+      DRAWING.CENTER.RADIUS = Math.floor(400 * scale); // 基础半径400 * 缩放比例
+      DRAWING.SCALE.R24 = Math.floor(380 * scale);     // 24节气圈半径
+      DRAWING.SCALE.RX = Math.floor(440 * scale);      // 28宿圈半径
+      DRAWING.SCALE.R1_BASE = Math.floor(400 * scale); // 基础半径
     }
     function draw24jq(context, cx, cy, r, clock, southAngle) {
       context.font = '16px monospace';
@@ -910,7 +946,7 @@ const app = {
         context.fillStyle = settings.s.useEcliptic ? '#caa45d' : 'red';
         context.fillText(settings.s.useEcliptic ? '黄道坐标':'赤道坐标',
                         cx - context.measureText('黄道坐标').width/2, cy - (r-50));
-        context.fillStyle = 'black';
+        context.fillStyle = '#e0e0e0';
         context.fillText(settings.s.BeiDouFaceSouth ? '面南':'面北',
                         cx - context.measureText('面南').width/2, cy - (r-50) + 20);
       }
@@ -937,7 +973,7 @@ const app = {
           r2t = r2;
           if(i % 6 == 0)r2 = ignoreR;
           if(i == 6)r2 = 0;  // 冬至点延长线到圆心
-          context.strokeStyle = i == 6 ? 'black' : 'rgb(50,100,230)';
+          context.strokeStyle = i == 6 ? '#404040' : 'rgb(50,100,230)';
           context.beginPath();
           context.moveTo(cx + r2*Math.cos(angle)*x, cy + r2*Math.sin(angle));
           context.lineTo(cx + r1*Math.cos(angle)*x, cy + r1*Math.sin(angle));
@@ -983,7 +1019,7 @@ const app = {
         for(let i = 0; i < 24; i++){
           let a = i*Math.PI/12 + southAngle;
           context.beginPath();
-          context.strokeStyle = 'black';
+          context.strokeStyle = '#e0e0e0';
           let r1 = rx - 20;
           let r2 = r1 - 6;
           context.moveTo(cx + r2*Math.cos(a)*xx, cy - r2*Math.sin(a));
@@ -1197,7 +1233,7 @@ const app = {
           dt1 = rdz * Math.cos(cj);
           dt2 = rdz * Math.sin(cj);
           if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : 'rgb(0,0,0)';
+          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : '#e0e0e0';
           let zf = dzinit.offset3 > 0 ? '+' : (dzinit.offset3 == 0 ? '' : '-');
           let txt = dizhi[j] + (i == 0 ? `年第${dzinit.dy}天(${zf}${Math.abs(dzinit.offset3)})约偏${dzinit.offset2}°` : '');
           let w = context.measureText(txt).width;
@@ -1219,7 +1255,7 @@ const app = {
           dt1 = rdz * Math.cos(cj);
           dt2 = rdz * Math.sin(cj);
           if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : 'rgb(0,0,0)';
+          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : '#e0e0e0';
           let txt = dizhi[j] + (i == 0 ? '月' : '');
           let w = context.measureText(txt).width;
           context.fillText(txt, cx + dt1 - w/2, cy - dt2);
@@ -1249,7 +1285,7 @@ const app = {
       context.strokeStyle = 'rgb(35,66,121)';
       context.stroke();
       // context.style = 'rgb(0,0,0)';
-      context.fillStyle = 'rgb(255,255,255)';
+      context.fillStyle = '#e0e0e0';
       context.fill();
 
       // 画地球北极点
@@ -1258,7 +1294,7 @@ const app = {
         let northPolarR = (settings.s.useEcliptic ? crossPixels*23.5/90 : 0);
         let x = settings.s.BeiDouFaceSouth ? 1 : -1;
         context.arc(cx - northPolarR*Math.sin(southAngle)*x, cy - northPolarR*Math.cos(southAngle) , 1.6, 0, 2*Math.PI);
-        context.fillStyle = 'black';
+        context.fillStyle = '#404040';
         context.fill();
         // 黄道面下画赤道
         if(settings.s.useEcliptic){
@@ -1380,7 +1416,7 @@ const app = {
         }
         const x = 50;
         let y = cy + (rx + 80) - 18*6;
-        context.fillStyle = 'black';
+        context.fillStyle = '#e0e0e0';
         let zd = settings.s.use360 ? '(360度制)' : '(365.25度制)';
         context.fillText(settings.s.useEcliptic?`黄经${zd}:`:`赤经${zd}:`, x, y-18*2);
         context.fillText(txt0, x, y-18);
@@ -1512,7 +1548,7 @@ const app = {
           dt1 = rdz * Math.cos(cj);
           dt2 = rdz * Math.sin(cj);
           if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = 'rgb(0,0,0)';
+          context.fillStyle = '#e0e0e0';
           let txt = tiangan[j] + (i == 0 ? extra : '');
           context.fillText(txt, cx + dt1, cy - dt2 - 22);
           if (i == 0) {
@@ -1941,6 +1977,12 @@ const app = {
         context = graph.getContext('2d');
         resetCanvas();
         paint();
+
+        // 添加窗口大小变化监听器
+        window.addEventListener('resize', () => {
+          resetCanvas();
+          paint();
+        });
       }, 1);
 
       // console.time('retro');
@@ -2063,7 +2105,7 @@ const app = {
     return {
       now, info, position, nextday, nextHour, nextMinute,
       nextday, formatHourDeg,
-      direction, paint, resetCanvas,
+      direction, paint, resetCanvas, calculateCanvasSize,
       settings, saveSettings, savePosition,
       nowProcess, today,
       timeSpan, timeUnit,
