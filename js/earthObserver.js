@@ -113,6 +113,8 @@ const app = {
       let day = now.value;
       day.setDate(day.getDate() + dd);
       paint();
+      // 同步所有视图
+      syncTimeToAllViews();
     }
 
     function nextHour(dh){
@@ -120,6 +122,8 @@ const app = {
       let day = now.value;
       day.setHours(day.getHours() + dh);
       paint();
+      // 同步所有视图
+      syncTimeToAllViews();
     }
 
     function nextMinute(dm){
@@ -127,6 +131,8 @@ const app = {
       let day = now.value;
       day.setMinutes(day.getMinutes() + dm);
       paint();
+      // 同步所有视图
+      syncTimeToAllViews();
     }
 
     // 天文计算：
@@ -1645,6 +1651,8 @@ const app = {
       now.value = new Date();
       refreshInfo();
       paint();
+      // 同步所有视图
+      syncTimeToAllViews();
     }, CALCULATION.UPDATE_INTERVAL);
     }
 
@@ -1732,12 +1740,19 @@ const app = {
       }else if(k == 87){ // W 切换北斗视图
         settings.s.BeiDouFaceSouth = !settings.s.BeiDouFaceSouth;
         paint();
+      }else if(k == 32){ // 空格键，暂停/播放太阳系动画
+        event.preventDefault();
+        if (window.solarSystemVisualizer) {
+          solarSystemSettings.animationSpeed = solarSystemSettings.animationSpeed > 0 ? 0 : 1;
+          window.solarSystemVisualizer.animationSpeed = parseInt(solarSystemSettings.animationSpeed);
+        }
       }else if(k == 69){ // E， 后退若干时间段
         let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
         if(timeUnit.value == '月') day *= 30;
         if(timeUnit.value == '年') day *= 365.25;
         now.value.setDate(now.value.getDate() - day);
         paint();
+        syncTimeToAllViews();
       }
       else if(k == 82){ // R， 前进若干时间段
         let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
@@ -1745,6 +1760,7 @@ const app = {
         if(timeUnit.value == '年') day *= 365.25;
         now.value.setDate(now.value.getDate() + day);
         paint();
+        syncTimeToAllViews();
       }else if(k == 84){ // T, 切换是否展示行星距离
         settings.s.showPlanetDistance = !settings.s.showPlanetDistance;
         paint();
@@ -2002,6 +2018,18 @@ const app = {
         resetCanvas();
         paint();
 
+        // 初始化太阳系可视化
+        const solarCanvas = document.getElementById('solar-system-canvas');
+        if (solarCanvas) {
+          window.solarSystemVisualizer = new SolarSystemVisualizer();
+          window.solarSystemVisualizer.setExternalTimeManager({ now: now });
+          window.solarSystemVisualizer.currentTime = new Date(now.value); // 同步初始时间
+          window.solarSystemVisualizer.init(solarCanvas);
+        }
+
+        // 启动太阳系动画循环
+        startSolarSystemAnimationLoop();
+
         // 添加窗口大小变化监听器
         window.addEventListener('resize', () => {
           resetCanvas();
@@ -2126,14 +2154,98 @@ const app = {
     const showAdvancedSection = ref(false);
     const showShortcutsSection = ref(true);
 
+    // 太阳系设置
+    const solarSystemSettings = reactive({
+      showOrbits: true,
+      showLabels: true,
+      showCoords: false,
+      animationSpeed: 0
+    });
+
+    // 更新太阳系设置
+    function updateSolarSystemSettings() {
+      if (window.solarSystemVisualizer) {
+        window.solarSystemVisualizer.showOrbits = solarSystemSettings.showOrbits;
+        window.solarSystemVisualizer.showLabels = solarSystemSettings.showLabels;
+        window.solarSystemVisualizer.showCoords = solarSystemSettings.showCoords;
+        window.solarSystemVisualizer.animationSpeed = parseInt(solarSystemSettings.animationSpeed);
+        window.solarSystemVisualizer.update();
+      }
+    }
+
+    // 统一的时间同步函数 - 确保两个视图时间完全一致
+    function syncTimeToAllViews() {
+      if (window.solarSystemVisualizer) {
+        // 太阳系视图使用外部时间管理器，不需要设置currentTime
+        // 直接更新即可，会自动使用最新的now.value
+        window.solarSystemVisualizer.update();
+      }
+    }
+
+    // 统一的动画处理 - 当太阳系有动画速度时
+    function handleSolarSystemAnimation() {
+      if (window.solarSystemVisualizer && solarSystemSettings.animationSpeed > 0) {
+        // 更新太阳系时间
+        now.value.setTime(now.value.getTime() + parseInt(solarSystemSettings.animationSpeed) * 1000);
+        refreshInfo();
+        paint();
+        syncTimeToAllViews();
+      }
+    }
+
+    // 太阳系动画循环函数
+    function startSolarSystemAnimationLoop() {
+      let animationId;
+
+      function animate() {
+        if (window.solarSystemVisualizer && solarSystemSettings.animationSpeed > 0) {
+          handleSolarSystemAnimation();
+          animationId = requestAnimationFrame(animate);
+        } else {
+          // 如果动画速度为0，停止动画循环
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        }
+      }
+
+      // 监听动画速度变化
+      watch(solarSystemSettings, (newSettings) => {
+        if (newSettings.animationSpeed > 0) {
+          // 启动动画
+          animate();
+        } else {
+          // 停止动画
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        }
+      }, { deep: true });
+
+      // 如果初始速度大于0，立即启动动画
+      if (solarSystemSettings.animationSpeed > 0) {
+        animate();
+      }
+    }
+
+    // 时间控制函数已经在前面添加了太阳系同步逻辑
+
+    // 修改nowProcess函数
+    const originalNowProcess = nowProcess;
+    nowProcess = function(cls, value) {
+      originalNowProcess(cls, value);
+      setTimeout(syncTimeToAllViews, 50); // 延迟同步确保时间已更新
+    };
+
     return {
       now, info, position, nextday, nextHour, nextMinute,
-      nextday, formatHourDeg,
+      formatHourDeg,
       direction, paint, resetCanvas, calculateCanvasSize,
       settings, saveSettings, savePosition,
       nowProcess, today,
       timeSpan, timeUnit,
       showCalendarSection, showAdvancedSection, showShortcutsSection,
+      solarSystemSettings, updateSolarSystemSettings
     }
   }
 }
