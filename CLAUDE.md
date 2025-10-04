@@ -11,7 +11,7 @@ This is a Chinese astronomy web application called "天体图文" (Astronomical 
 ### Core Files
 - `index.html` - Main HTML entry point containing the Vue.js application interface and embedded JavaScript code
 - `css/styles.css` - Application stylesheet for tables and canvas elements
-- `js/app.js` - Main application logic and Vue.js component (currently embedded in index.html)
+- `js/earthObserver.js` - Main application logic and Vue.js component for Earth-based astronomical observation
 - `js/lib/astronomy.browser.js` - Third-party astronomy calculation library (cosinekitty/astronomy v2.4)
 - `js/lib/lunar.js` - Chinese calendar and lunar phase calculation library
 - `js/lib/vue3.js` - Vue.js 3 framework for reactive UI components
@@ -24,7 +24,7 @@ planet/
 ├── css/
 │   └── styles.css          # Application styles
 ├── js/
-│   ├── app.js              # Main application script (can be embedded)
+│   ├── earthObserver.js    # Earth-based astronomical observation script
 │   └── lib/                # Third-party libraries
 │       ├── astronomy.browser.js
 │       ├── lunar.js
@@ -78,7 +78,7 @@ Since this is a client-side web application, simply open `index.html` in a web b
 2. **Application Logic**: The main Vue.js application code is currently embedded within `<script>` tags in index.html (lines 8-2365)
 3. **Styling**: Update CSS styles in `css/styles.css` or the `<style>` section of index.html
 4. **Asset Management**: Add/modify images in `assets/images/` directory
-5. **Code Organization**: For better maintainability, consider extracting the embedded JavaScript from index.html into `js/app.js`
+5. **Code Organization**: For better maintainability, consider extracting the embedded JavaScript from index.html into `js/earthObserver.js`
 
 ### Dependencies
 All dependencies are included locally in the repository:
