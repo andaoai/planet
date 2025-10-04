@@ -781,7 +781,7 @@ const app = {
       let width = settings.s.showPlanetDistance ?
                   (settings.s.onlyShow7Yao ? DRAWING.CANVAS.WIDTH_7YAO : DRAWING.CANVAS.WIDTH_DISTANCE)
                   : DRAWING.CANVAS.WIDTH_DEFAULT;
-      graph.width = Math.max(width, DRAWING.CANVAS.MAX_WIDTH);
+      graph.width = width; // 直接使用配置的宽度，不要强制设为MAX_WIDTH
       graph.height = DRAWING.CANVAS.HEIGHT;
     }
     function draw24jq(context, cx, cy, r, clock, southAngle) {
@@ -889,8 +889,8 @@ const app = {
         resetCanvas();
       }
       // Draw a cross at the SSB location.
-      const cx = DRAWING.CENTER.X; //graph.width / 2;
-      const cy = DRAWING.CENTER.Y; //graph.height / 2;
+      const cx = graph.width / 2;  // 动态计算画布中心X坐标
+      const cy = graph.height / 2; // 动态计算画布中心Y坐标
       const r = DRAWING.CENTER.RADIUS;
       const xx = settings.s.BeiDouFaceSouth ? 1 : -1;
       let pos = getPosition();
