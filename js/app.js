@@ -456,9 +456,9 @@ const app = {
 
     // 绘制图片
     let jupiterImg = new Image();
-    jupiterImg.src = 'jupiter.png';
+    jupiterImg.src = 'assets/images/jupiter.png';
     let saturnImg = new Image();
-    saturnImg.src = 'saturn.png';
+    saturnImg.src = 'assets/images/saturn.png';
     // kdr: 刻度开始半径， kdl: 刻度长
     function PlotPlanet(graph, context, planet, symbol, radius, cx, cy, kdr, kdl, southAngle, sidereal) {
       const vecKey = settings.s.useEcliptic ? 'evec' : 'vec';
