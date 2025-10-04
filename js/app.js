@@ -6,7 +6,7 @@ Array.prototype.at = function(idx) {
 }
 const app = {
   setup() {
-    const { PLANETS, CALENDAR, DRAWING, DEFAULT_SETTINGS, DEFAULT_POSITION, COMMON_STARS, PHYSICS, CALCULATION } = window.ASTRONOMY_CONFIG;
+    const { PLANETS, CALENDAR, DRAWING, DEFAULT_SETTINGS, DEFAULT_POSITION, PHYSICS, CALCULATION } = window.ASTRONOMY_CONFIG;
     const ryear = CALENDAR.TROPICAL_YEAR;
     function Pad(s, w) {
       s = s.toFixed(0);
@@ -292,23 +292,7 @@ const app = {
     const info = ref([]);
 
     // 常用大星赤经
-    function getCommonStarsRA(ra, dec, name) {
-      let pos = getPosition();
-      let today = now.value;
-      let observer = new Astronomy.Observer(pos.latitude, pos.longitude, pos.altitude);
-      let hor = Astronomy.Horizon(today, observer, ra, dec, 'normal');
-      let sidereal = Astronomy.SiderealTime(now.value);
-      let ta = (sidereal - ra + observer.longitude / 15) % 24;
-      if (ta < 0) ta += 24;
-      timeAngle = formatHourDeg(ta);
-      return {
-        name, ra, dec, timeAngle,
-        du: ta / 24 * 360,
-        azimuth: hor.azimuth,
-        altitude: hor.altitude
-      }
-    }
-
+  
     // 行星绘图
     const PlanetOrbitScale = DRAWING.ORBIT_SCALE;
     const crossPixels = DRAWING.CENTER.CROSS_PIXELS;
@@ -1692,7 +1676,6 @@ const app = {
     }
 
     const direction = ref([]);
-    const stars = ref([]);
 
     function refreshInfo(fn) {
       info.value = [];
@@ -1715,9 +1698,6 @@ const app = {
       if(fn){
         planets.forEach(d => fn(d));
       }
-
-      // 数据修正时间：2023/1/22 20:36:00
-      stars.value = COMMON_STARS.map(s => getCommonStarsRA(s.ra, s.dec, s.name));
     }
 
     function makeInterval(){
@@ -2198,7 +2178,7 @@ const app = {
     return {
       now, info, position, nextday, nextHour, nextMinute,
       nextday, formatHourDeg,
-      direction, stars, paint, resetCanvas,
+      direction, paint, resetCanvas,
       settings, saveSettings, savePosition,
       nowProcess, today,
       timeSpan, timeUnit,

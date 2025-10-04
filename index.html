@@ -14,10 +14,6 @@
 
 <body>
   <div id="app">
-    <!-- <input v-model="now">
-    <button @click="nextday(-1)">上一天</button>
-    <button @click="nextday(1)">下一天</button> -->
-    <button onclick="location='/'" style="margin-left: 12px;">返回紫金历</button>
     <div>
       <fieldset>
         <legend>行星图配置：</legend>
@@ -97,102 +93,9 @@
     </select>
     </p>
     <canvas id="my"></canvas>
-    <h4>行星图说明：</h4>
-      <ol>
-        <li>十月历和十二月历内容请参考<a href="http://www.sitianxueyuan.com" target="_blank">周鹏老师网站</a></li>
-        <li>行星下面标注的数字，从上到下为：赤纬，距离百分比（0为近地点，100为远地点，地外行星才有）,黄纬(红色表示在黄道下方，绿色表示在黄道上方)</li>
-        <li>12月历年支斗建为外圈地支，以木星方位为子，卯年则冬至点在卯方</li>
-        <li>12月历月支斗建为内圈地支，以太阳方位为子，卯月则冬至点在卯方</li>
-        <li>斗建因为比较直接，所以不需要画全整个地支</li>
-        <li>10月历在当年第一天的木星位置以红框标出当年的年干，以及当时月干及第几天，可方便验证木星逆行规律</li>
-        <li>本图采用了js自带日期库，1582年10月消失的10天不能处理，因此1582年10月15日之前10月历与12月历的天数是有问题的。</li>
-        <li>一般来说，木星运行到24节气圈的位置时（我调了这个半径），基本就是开始逆行的时候</li>
-        <li>28宿是直接用赤经度数画在黄道上，所以并不精确。</li>
-        <li>28宿采用古法，以春分点为赤经0度，周天为365.25度，用现代（2023年1月22日）的赤经数据以及钜星，重新划分了宿度。</li>
-        <li>此图为真实太阳系当时数据（使用天文库计算而来，误差在秒级）,1848年以前的数据误差在半个小时左右（月亮误差最大能到几个小时），1848年到1900年之间误差在3分钟以内，之后误差在秒级</li>
-        <li>此图方位，观看太阳与24节气圈即知道目前节气。行星之间方位夹角均为真实数据。木星、土星、天王、海王星距离均做了按比例缩减，否则难以画出</li>
-        <li>此图默认为天赤道俯视图，可切换至黄道俯视图</li>
-        <li>手机可以触摸屏幕后跳一天，或者点击屏幕右下方固定按钮"后跳一天"</li>
-        <li>如果显示不全，是因为图比较大，一定会有左右方向的滚动条，可尝试拖动</li>
-        <li>28宿圈附近显示有参宿，觜宿，角宿和斗宿。帮助定位北斗：杓携龙角，衡殷南斗，魁枕参首</li>
-        <li>同时显示赤道黄道时，有一条地平曲线，可用以判断日出日落时间，但因为二维平面的缘故，难以表达精确，故越接近二至点，偏差越大，最多时能偏差20分钟左右</li>
-        <li>在不显示距离模式下，行星逆行时，行星名会变红，带上红色方框，下方是逆行第几日的数字</li>
-        <li>日年角：指相对于冬至点，太阳所在点的角度（太阳赤经 - 冬至点赤经），用24小时制显示</li>
-      </ol>
-    <h4>当下方位宿度表</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>方位</th>
-          <th>宿度</th>
-          <th>总宿度(365.25)</th>
-          <th>赤经</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="r in direction">
-          <td>{{r.name}}</td>
-          <td>
-            {{r.xiang}}-{{r.xiu}}{{r.du}}度
-            <br />{{r.percent}}%
-          </td>
-          <td>{{r.duAll}}度</td>
-          <td>{{formatHourDeg(r.ra)}}</td>
-        </tr>
-      </tbody>
-    </table>
+    
 
-    <h4>常用星当下方位表</h4>
-    <table>
-      <thead>
-        <th>星名</th>
-        <th>时角(度)</th>
-        <th>时角</th>
-        <th>方位/俯仰角</th>
-      </thead>
-      <tbody>
-        <tr v-for="r in stars">
-          <td>{{r.name}}</td>
-          <td>{{r.du.toFixed(1)}}°</td>
-          <td>{{r.timeAngle}}</td>
-          <td><span :style="{color:r.altitude<0?'red':'green'}">{{r.azimuth.toFixed(1)}}° /
-              {{r.altitude.toFixed(1)}}°</span></td>
-        </tr>
-      </tbody>
-    </table>
-    <h4>各大行星宿度表</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>星体</th>
-          <th>星宿</th>
-          <th>时角</th>
-          <th>方位角</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="r in info">
-          <td>{{r.body}}
-            <br /><span :style="{color:r.elat<0?'red':'green'}">黄纬 {{r.elat.toFixed(2)}}°</span>
-          </td>
-          <td>
-            {{r.xiang}}-{{r.xiu}}{{r.du}}度
-            <br />{{r.percent}}%
-            <br />{{r.duAll}}度
-          </td>
-          <td>
-            {{r.timeAngle}}
-            <br />{{formatHourDeg(r.ra)}}
-            <br />{{r.dec.toFixed(2)}}°
-          </td>
-          <td :style="{color:r.hor.altitude<0?'red':'green'}">
-            {{r.hor.azimuth.toFixed(2)}}°
-            <br />{{r.hor.altitude.toFixed(2)}}°
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <button @click="nextMinute(-1);" style="position: fixed; bottom: 0; right: 530px;">前跳1分钟</button>
+        <button @click="nextMinute(-1);" style="position: fixed; bottom: 0; right: 530px;">前跳1分钟</button>
     <button @click="nextMinute(1);" style="position: fixed; bottom: 0; right: 440px;">后跳1分钟</button>
     <button @click="nextHour(-1);" style="position: fixed; bottom: 0; right: 350px;">前跳1小时</button>
     <button @click="nextHour(1);" style="position: fixed; bottom: 0; right: 260px;">后跳1小时</button>
