@@ -1718,14 +1718,14 @@ const app = {
         settings.s.BeiDouFaceSouth = !settings.s.BeiDouFaceSouth;
         paint();
       }else if(k == 69){ // E， 后退若干时间段
-        let day = parseFloat((timeSpan.value+'').replaceAll(',','').replaceAll('，',''));
+        let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
         if(timeUnit.value == '月') day *= 30;
         if(timeUnit.value == '年') day *= 365.25;
         now.value.setDate(now.value.getDate() - day);
         paint();
       }
       else if(k == 82){ // R， 前进若干时间段
-        let day = parseFloat(timeSpan.value.replaceAll(',','').replaceAll('，',''));
+        let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
         if(timeUnit.value == '月') day *= 30;
         if(timeUnit.value == '年') day *= 365.25;
         now.value.setDate(now.value.getDate() + day);
