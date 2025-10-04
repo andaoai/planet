@@ -1,0 +1,17 @@
+/* 天体图文应用样式 */
+table {
+  border-collapse: collapse;
+  border: 1px solid gray;
+}
+
+td,
+th {
+  border: 1px solid gray;
+  text-align: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+#my {
+  border: 1px solid black;
+}
