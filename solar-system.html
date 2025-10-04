@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系行星位置可视化</title>
+    <script src="js/lib/vue3.js"></script>
+    <script src="js/lib/astronomy.browser.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .control-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        .control-group label {
+            display: inline-block;
+            width: 120px;
+            color: #aaa;
+        }
+
+        .control-group input, .control-group select {
+            background: #222;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        button {
+            background: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        .info-panel {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .planet-info {
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 5px 10px;
+            background: #222;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+
+        .planet-name {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .planet-coords {
+            color: #888;
+            font-size: 12px;
+        }
+
+        canvas {
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            background: #000;
+        }
+
+        .time-display {
+            font-size: 18px;
+            color: #fff;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <h1 style="text-align: center; color: #fff;">太阳系行星位置可视化</h1>
+
+            <div class="controls">
+                <div class="time-display">{{ formatTime(currentTime) }}</div>
+
+                <div class="control-group">
+                    <label>时间控制:</label>
+                    <button @click="previousDay">上一天 (J)</button>
+                    <button @click="nextDay">下一天 (K)</button>
+                    <button @click="previousHour">上一小时 (N)</button>
+                    <button @click="nextHour">下一小时 (M)</button>
+                    <button @click="now">当前时间 (H)</button>
+                </div>
+
+                <div class="control-group">
+                    <label>播放速度:</label>
+                    <select v-model="animationSpeed">
+                        <option value="0">暂停</option>
+                        <option value="1">1x</option>
+                        <option value="10">10x</option>
+                        <option value="100">100x</option>
+                        <option value="1000">1000x</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>显示选项:</label>
+                    <input type="checkbox" id="showOrbits" v-model="showOrbits">
+                    <label for="showOrbits">显示轨道</label>
+
+                    <input type="checkbox" id="showLabels" v-model="showLabels">
+                    <label for="showLabels">显示标签</label>
+
+                    <input type="checkbox" id="showCoords" v-model="showCoords">
+                    <label for="showCoords">显示坐标</label>
+                </div>
+
+                <div class="help-text">
+                    键盘快捷键：J/K - 前进/后退一天 | N/M - 前进/后退一小时 | H - 返回当前时间 | 空格 - 暂停/播放
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div v-for="planet in planets" :key="planet.name" class="planet-info">
+                    <span class="planet-name" :style="{color: planet.color}">{{ planet.name }}</span>
+                    <span class="planet-coords" v-if="showCoords">
+                        黄经: {{ planet.ecliptic.toFixed(2) }}° 黄纬: {{ planet.latitude.toFixed(2) }}°
+                    </span>
+                </div>
+                <div v-if="moon.ecliptic !== undefined" class="planet-info">
+                    <span class="planet-name" :style="{color: moon.color}">{{ moon.name }}</span>
+                    <span class="planet-coords" v-if="showCoords">
+                        黄经: {{ moon.ecliptic.toFixed(2) }}° 黄纬: {{ moon.latitude.toFixed(2) }}°
+                    </span>
+                </div>
+            </div>
+
+            <canvas ref="canvas" :width="canvasSize" :height="canvasSize"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, onUnmounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const canvas = ref(null);
+                const canvasSize = ref(800);
+                const currentTime = ref(new Date());
+                const animationSpeed = ref(0);
+                const showOrbits = ref(true);
+                const showLabels = ref(true);
+                const showCoords = ref(false);
+                const animationFrame = ref(null);
+
+                // 行星配置
+                const planets = ref([
+                    { name: '水星', englishName: 'Mercury', color: '#A67B5B', radius: 4, orbitRadius: 60 },
+                    { name: '金星', englishName: 'Venus', color: '#FFC649', radius: 8, orbitRadius: 90 },
+                    { name: '地球', englishName: 'Earth', color: '#4169E1', radius: 12, orbitRadius: 120 },
+                    { name: '火星', englishName: 'Mars', color: '#CD5C5C', radius: 6, orbitRadius: 150 },
+                    { name: '木星', englishName: 'Jupiter', color: '#DAA520', radius: 20, orbitRadius: 200 },
+                    { name: '土星', englishName: 'Saturn', color: '#F4A460', radius: 18, orbitRadius: 250 },
+                    { name: '天王星', englishName: 'Uranus', color: '#4FD0E0', radius: 12, orbitRadius: 300 },
+                    { name: '海王星', englishName: 'Neptune', color: '#4169E1', radius: 12, orbitRadius: 340 },
+                    { name: '冥王星', englishName: 'Pluto', color: '#9CA4AB', radius: 3, orbitRadius: 380 }
+                ]);
+
+                // 月球配置
+                const moon = ref({
+                    name: '月球',
+                    englishName: 'Moon',
+                    color: '#C0C0C0',
+                    radius: 6,
+                    orbitRadius: 25, // 月球相对于地球的轨道半径
+                    isMoon: true
+                });
+
+                // 格式化时间
+                function formatTime(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hour = String(date.getHours()).padStart(2, '0');
+                    const minute = String(date.getMinutes()).padStart(2, '0');
+                    const second = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+                }
+
+                // 计算行星位置
+                function calculatePlanetPositions() {
+                    const time = new Astronomy.AstroTime(currentTime.value);
+
+                    planets.value.forEach(planet => {
+                        try {
+                            // 获取日心黄道坐标
+                            const vector = Astronomy.HelioVector(planet.englishName, time);
+
+                            // 计算黄经和黄纬
+                            const ecliptic = Astronomy.Ecliptic(vector);
+                            planet.ecliptic = ecliptic.elon * 180 / Math.PI; // 转换为度
+                            planet.latitude = ecliptic.elat * 180 / Math.PI; // 转换为度
+
+                            // 计算屏幕坐标
+                            const angle = (ecliptic.elon * Math.PI) / 180; // 转换为弧度
+                            const scale = 1; // 可以根据需要调整比例
+                            planet.x = Math.cos(angle) * planet.orbitRadius * scale;
+                            planet.y = Math.sin(angle) * planet.orbitRadius * scale;
+
+                        } catch (error) {
+                            console.error(`计算 ${planet.name} 位置时出错:`, error);
+                            planet.ecliptic = 0;
+                            planet.latitude = 0;
+                            planet.x = planet.orbitRadius;
+                            planet.y = 0;
+                        }
+                    });
+
+                    // 单独计算月球位置
+                    try {
+                        // 获取地球位置
+                        const earth = planets.value.find(p => p.englishName === 'Earth');
+                        const earthVector = Astronomy.HelioVector('Earth', time);
+                        const earthEcliptic = Astronomy.Ecliptic(earthVector);
+                        const earthAngle = (earthEcliptic.elon * Math.PI) / 180;
+
+                        // 直接获取月球的日心坐标
+                        const moonVectorHeliocentric = Astronomy.HelioVector('Moon', time);
+                        const moonEclipticHeliocentric = Astronomy.Ecliptic(moonVectorHeliocentric);
+
+                        moon.value.ecliptic = moonEclipticHeliocentric.elon * 180 / Math.PI;
+                        moon.value.latitude = moonEclipticHeliocentric.elat * 180 / Math.PI;
+
+                        // 获取月球相对地球的位置（用于绘制月球位置）
+                        const moonGeoPos = Astronomy.GeoMoon(time);
+                        const moonRelativeAngle = Math.atan2(moonGeoPos.y, moonGeoPos.x);
+                        moon.value.relativeX = Math.cos(moonRelativeAngle) * moon.value.orbitRadius;
+                        moon.value.relativeY = Math.sin(moonRelativeAngle) * moon.value.orbitRadius;
+
+                        // 计算月球在太阳系中的实际位置（地球位置 + 月球相对位置）
+                        const earthScreenX = Math.cos(earthAngle) * earth.orbitRadius;
+                        const earthScreenY = Math.sin(earthAngle) * earth.orbitRadius;
+
+                        moon.value.x = earthScreenX + moon.value.relativeX;
+                        moon.value.y = earthScreenY + moon.value.relativeY;
+
+                    } catch (error) {
+                        console.error(`计算月球位置时出错:`, error);
+                        moon.value.ecliptic = 0;
+                        moon.value.latitude = 0;
+                        moon.value.x = 125;
+                        moon.value.y = 0;
+                        moon.value.relativeX = moon.value.orbitRadius;
+                        moon.value.relativeY = 0;
+                    }
+
+                    // 调试输出月球位置
+                    if (moon.value.ecliptic !== undefined) {
+                        console.log(`月球位置 - 黄经: ${moon.value.ecliptic.toFixed(2)}°, X: ${moon.value.x.toFixed(2)}, Y: ${moon.value.y.toFixed(2)}`);
+                    }
+                }
+
+                // 绘制函数
+                function draw() {
+                    const ctx = canvas.value.getContext('2d');
+                    const centerX = canvasSize.value / 2;
+                    const centerY = canvasSize.value / 2;
+
+                    // 清空画布
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, canvasSize.value, canvasSize.value);
+
+                    // 绘制轨道
+                    if (showOrbits.value) {
+                        planets.value.forEach(planet => {
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, planet.orbitRadius, 0, 2 * Math.PI);
+                            ctx.strokeStyle = '#333';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        });
+
+                        // 绘制月球轨道（以地球为中心的小圆圈）
+                        const earth = planets.value.find(p => p.englishName === 'Earth');
+                        if (earth && moon.value.relativeX !== undefined) {
+                            const earthX = centerX + earth.x;
+                            const earthY = centerY - earth.y;
+
+                            ctx.beginPath();
+                            ctx.arc(earthX, earthY, moon.value.orbitRadius, 0, 2 * Math.PI);
+                            ctx.strokeStyle = '#666';
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+
+                    // 绘制太阳
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFA500';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // 绘制太阳标签
+                    if (showLabels.value) {
+                        ctx.fillStyle = '#FFD700';
+                        ctx.font = 'bold 12px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('太阳', centerX, centerY - 20);
+                    }
+
+                    // 绘制行星
+                    planets.value.forEach(planet => {
+                        const x = centerX + planet.x;
+                        const y = centerY - planet.y; // 负号因为屏幕坐标系Y轴向下
+
+                        // 绘制行星
+                        ctx.beginPath();
+                        ctx.arc(x, y, planet.radius, 0, 2 * Math.PI);
+                        ctx.fillStyle = planet.color;
+                        ctx.fill();
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+
+                        // 绘制标签
+                        if (showLabels.value) {
+                            ctx.fillStyle = planet.color;
+                            ctx.font = '12px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(planet.name, x, y - planet.radius - 5);
+                        }
+                    });
+
+                    // 绘制月球
+                    if (moon.value.x !== undefined) {
+                        const moonX = centerX + moon.value.x;
+                        const moonY = centerY - moon.value.y;
+
+                        // 绘制月球
+                        ctx.beginPath();
+                        ctx.arc(moonX, moonY, moon.value.radius, 0, 2 * Math.PI);
+                        ctx.fillStyle = moon.value.color;
+                        ctx.fill();
+                        ctx.strokeStyle = '#C0C0C0';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+
+                        // 月球添加光晕效果
+                        ctx.beginPath();
+                        ctx.arc(moonX, moonY, moon.value.radius + 2, 0, 2 * Math.PI);
+                        ctx.strokeStyle = 'rgba(192, 192, 192, 0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+
+                        // 绘制月球标签
+                        if (showLabels.value) {
+                            ctx.fillStyle = moon.value.color;
+                            ctx.font = '10px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(moon.value.name, moonX, moonY - moon.value.radius - 3);
+                        }
+                    }
+                }
+
+                // 时间控制函数
+                function previousDay() {
+                    currentTime.value.setDate(currentTime.value.getDate() - 1);
+                    updateVisualization();
+                }
+
+                function nextDay() {
+                    currentTime.value.setDate(currentTime.value.getDate() + 1);
+                    updateVisualization();
+                }
+
+                function previousHour() {
+                    currentTime.value.setHours(currentTime.value.getHours() - 1);
+                    updateVisualization();
+                }
+
+                function nextHour() {
+                    currentTime.value.setHours(currentTime.value.getHours() + 1);
+                    updateVisualization();
+                }
+
+                function now() {
+                    currentTime.value = new Date();
+                    updateVisualization();
+                }
+
+                // 更新可视化
+                function updateVisualization() {
+                    calculatePlanetPositions();
+                    draw();
+                }
+
+                // 动画循环
+                function animate() {
+                    if (animationSpeed.value > 0) {
+                        currentTime.value.setTime(currentTime.value.getTime() + animationSpeed.value * 1000);
+                        updateVisualization();
+                    }
+                    animationFrame.value = requestAnimationFrame(animate);
+                }
+
+                // 键盘事件处理
+                function handleKeyPress(event) {
+                    switch(event.key.toLowerCase()) {
+                        case 'j':
+                            previousDay();
+                            break;
+                        case 'k':
+                            nextDay();
+                            break;
+                        case 'n':
+                            previousHour();
+                            break;
+                        case 'm':
+                            nextHour();
+                            break;
+                        case 'h':
+                            now();
+                            break;
+                        case ' ':
+                            event.preventDefault();
+                            animationSpeed.value = animationSpeed.value > 0 ? 0 : 1;
+                            break;
+                    }
+                }
+
+                // 监听变化
+                watch([showOrbits, showLabels, showCoords], () => {
+                    draw();
+                });
+
+                watch(animationSpeed, (newSpeed) => {
+                    if (newSpeed > 0 && !animationFrame.value) {
+                        animate();
+                    } else if (newSpeed === 0 && animationFrame.value) {
+                        cancelAnimationFrame(animationFrame.value);
+                        animationFrame.value = null;
+                    }
+                });
+
+                // 生命周期
+                onMounted(() => {
+                    calculatePlanetPositions();
+                    draw();
+                    document.addEventListener('keydown', handleKeyPress);
+
+                    // 启动动画
+                    animate();
+                });
+
+                onUnmounted(() => {
+                    if (animationFrame.value) {
+                        cancelAnimationFrame(animationFrame.value);
+                    }
+                    document.removeEventListener('keydown', handleKeyPress);
+                });
+
+                return {
+                    canvas,
+                    canvasSize,
+                    currentTime,
+                    planets,
+                    moon,
+                    animationSpeed,
+                    showOrbits,
+                    showLabels,
+                    showCoords,
+                    formatTime,
+                    previousDay,
+                    nextDay,
+                    previousHour,
+                    nextHour,
+                    now
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
