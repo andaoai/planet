@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天体图文</title>
+  <script src="lunar.js"></script>
+  <script src="vue3.js"></script>
+  <script src="astronomy.browser.js?ver=2.4"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- <input v-model="now">
+    <button @click="nextday(-1)">上一天</button>
+    <button @click="nextday(1)">下一天</button> -->
+    <button onclick="location='/'" style="margin-left: 12px;">返回紫金历</button>
+    <div>
+      <fieldset>
+        <legend>行星图配置：</legend>
+        <input type="checkbox" id="guijiMode" v-model="settings.s.guijiMode" /><label for="guijiMode">(快捷键O)轨迹模式</label>
+        <br/><input type="checkbox" id="faceMode" v-model="settings.s.faceMode" /><label for="faceMode">(快捷键I)显示俯视图/侧视图</label>
+        <br/><input type="checkbox" id="show24Jieqi" v-model="settings.s.show24Jieqi" /><label for="show24Jieqi">显示24节气圈</label>
+        <br/><input type="checkbox" id="show24JieqiClockwise" v-model="settings.s.show24JieqiClockwise" /><label for="show24JieqiClockwise">(快捷键L)显示24节气圈为顺时针/否则逆时针方向</label>
+        <br/><input type="checkbox" id="show24JieqiArea" v-model="settings.s.show24JieqiArea" /><label for="show24JieqiArea">显示24节气圈区域分割线</label>
+        <br/><input type="checkbox" id="show28Xiu" v-model="settings.s.show28Xiu" /><label for="show28Xiu">显示28宿</label>
+        <br/><input type="checkbox" id="show28Xiu" v-model="settings.s.use360" /><label for="use360">28宿刻度采用360度制/365.25度制</label>
+        <br/><input type="checkbox" id="show28XiuArea" v-model="settings.s.show28XiuArea" /><label for="show28XiuArea">显示28宿区域分割线</label>
+        <br/><input type="checkbox" id="showDouJian" v-model="settings.s.showDouJian" /><label for="showDouJian">显示12月历年建（斗建）</label>
+        <br/><input type="checkbox" id="showYueJian" v-model="settings.s.showYueJian" /><label for="showYueJian">显示12月历月建（斗建）</label>
+        <br/><input type="checkbox" id="show10Yueli" v-model="settings.s.show10Yueli" /><label for="show10Yueli">显示10月历</label>
+        <br/><input type="checkbox" id="showLine" v-model="settings.s.showLine" /><label for="showLine">(快捷键B)显示行星与地球连线</label>
+        <br/><input type="checkbox" id="showPlanetData" v-model="settings.s.showPlanetData" /><label for="showPlanetData">(快捷键P)显示行星名与数据</label>
+        <br/><input type="checkbox" id="showDirection" v-model="settings.s.showDirection" /><label for="showDirection">显示当前时辰的方位分割线</label>
+        <br/><input type="checkbox" id="showSunPlanetTrack" v-model="settings.s.showSunPlanetTrack" /><label for="showSunPlanetTrack">(快捷键U)显示太阳系各行星轨道</label>
+        <br/><input type="checkbox" id="showNowString" v-model="settings.s.showNowString" /><label for="showNowString">显示当前时间</label>
+        <br/><input type="checkbox" id="southUp" v-model="settings.s.southUp" /><label for="southUp">(快捷键Y)当前正南方永远朝上放</label>
+        <br/><input type="checkbox" id="useEcliptic" v-model="settings.s.useEcliptic" /><label for="useEcliptic">(快捷键Q)切换黄道面/赤道面</label>
+        <br/><input type="checkbox" id="BeiDouFaceSouth" v-model="settings.s.BeiDouFaceSouth" /><label for="BeiDouFaceSouth">(快捷键W)北斗七星位置是否面向正南观测（与面北镜像），面南可看到其斗柄指向角宿（杓携龙角），面北则看的是北斗真正的样子和朝向</label>
+        <br/><input type="checkbox" id="showPlanetDistance" v-model="settings.s.showPlanetDistance" /><label for="showPlanetDistance">(快捷键T)展示行星距离</label>
+        <br/><input type="checkbox" id="faceNorthImage" v-model="settings.s.faceNorthImage" /><label for="faceNorthImage">面北时星宿采用面南的左右镜像（否则采用立体投影）</label>
+        <br/><input type="checkbox" id="useDecAndElipticInNoDistanceMode" v-model="settings.s.useDecAndElipticInNoDistanceMode" /><label for="useDecAndElipticInNoDistanceMode">(快捷键S)不展示行星距离模式下用赤纬和黄道赤道同时显示(此时太阳在黄道位置略有偏差)</label>
+        <br/><input type="checkbox" id="onlyShow7Yao" v-model="settings.s.onlyShow7Yao" /><label for="onlyShow7Yao">只显示七曜</label>
+        <br/><input type="checkbox" id="showHorRing" v-model="settings.s.showHorRing" /><label for="showHorRing">显示地平坐标行星方位图</label>
+        <br/>
+        <button @click="resetCanvas();paint();">刷新显示</button>
+        <button @click="saveSettings()" style="margin-left: 8px;">保存设置</button>
+      </fieldset>
+
+      <h3 style="color: red; font-weight: bold;">重要提示：按Y切换是否固定正南方向朝上</h3>
+      <fieldset>
+        <legend>其他便捷操作</legend>
+          <ol>
+            <li>行星图操作：按下J可自动跳到前一天，按下K自动跳到后一天，按下H回到今天。可按住K不放，即可观看行星动画</li>
+            <li>按下N：往前跳一小时，按下M：往后跳一小时</li>
+            <li>按下D：往前跳一分钟，按下F：往后跳一分钟</li>
+            <li>按下I：切换至侧视图，方便观看赤纬</li>
+            <li>按下O：切换至轨迹模式，查看行星运行轨迹</li>
+            <li>按下U：切换显示/不显示太阳系行星轨道（天王、海王星轨道不显示）</li>
+            <li>按下Y：切换是否固定方位十字（选择旋转方位十字或旋转24节气表）</li>
+            <li>按下L：切换24节气顺序</li>
+            <li>按下B：切换显示行星与地球连线</li>
+            <li>按下P：切换是否显示行星名与行星赤纬等数据</li>
+            <li>按下Q：切换黄道俯视角度/赤道俯视角度</li>
+            <li>按下A：跳到历元日期：1962年2月5日</li>
+            <li>Z,X,C：分别跳到早晨6点，午夜0点，下午18点，大写X跳到中午12点</li>
+            <li>按下W：切换北斗观测视角（面南/面北）</li>
+            <li>按E、W：以70年为单位前后跳，方便观察岁差</li>
+            <li>按T：切换是否展示行星距离。否则展示地球观察视效果，只根据黄纬区别上下，和距离区别谁覆盖谁</li>
+            <li>按S：在不展示行星距离情况下，切换用赤纬/黄纬绘制行星，赤纬时同时绘制黄道赤道</li>
+            <li>按G：切换28宿用360度或者365.25度</li>
+          </ol>
+       </fieldset>
+    </div>
+    <ul>
+      <li>经度：<input type="text" v-model.number="position.s.longitude" /></li>
+      <li>纬度：<input type="text" v-model.number="position.s.latitude" /></li>
+      <li>海拔：<input type="text" v-model.number="position.s.altitude" /></li>
+    </ul>
+    <button @click="savePosition()" style="margin-left: 8px;">保存经纬度</button>
+    <p>
+      <input type="text" :value="today.s.year" @input="nowProcess('year', $event.target.value)" style="width:3em;"/>
+      年<input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" style="width:3em;"/>
+      月<input type="number" :value="today.s.day" @input="nowProcess('day', $event.target.value)" style="width:3em;"/>
+      日&nbsp;<input type="number" :value="today.s.hour" @input="nowProcess('hour', $event.target.value)" style="width:3em;"/>
+      时<input type="number" :value="today.s.minute" @input="nowProcess('minute', $event.target.value)" style="width:3em;"/>
+      分<input type="number" :value="today.s.seconds" @input="nowProcess('seconds', $event.target.value)" style="width:3em;"/>
+      秒
+      <button style="margin-left: 12px;" @click="resetCanvas();paint();">刷新显示</button>
+    </p>
+    <p>快捷键E、R时间跨度: <input v-model="timeSpan" size="3"/>
+    <select v-model="timeUnit">
+      <option v-for="r in '年月日'" :value="r">{{r}}</option>
+    </select>
+    </p>
+    <canvas id="my"></canvas>
+    <h4>行星图说明：</h4>
+      <ol>
+        <li>十月历和十二月历内容请参考<a href="http://www.sitianxueyuan.com" target="_blank">周鹏老师网站</a></li>
+        <li>行星下面标注的数字，从上到下为：赤纬，距离百分比（0为近地点，100为远地点，地外行星才有）,黄纬(红色表示在黄道下方，绿色表示在黄道上方)</li>
+        <li>12月历年支斗建为外圈地支，以木星方位为子，卯年则冬至点在卯方</li>
+        <li>12月历月支斗建为内圈地支，以太阳方位为子，卯月则冬至点在卯方</li>
+        <li>斗建因为比较直接，所以不需要画全整个地支</li>
+        <li>10月历在当年第一天的木星位置以红框标出当年的年干，以及当时月干及第几天，可方便验证木星逆行规律</li>
+        <li>本图采用了js自带日期库，1582年10月消失的10天不能处理，因此1582年10月15日之前10月历与12月历的天数是有问题的。</li>
+        <li>一般来说，木星运行到24节气圈的位置时（我调了这个半径），基本就是开始逆行的时候</li>
+        <li>28宿是直接用赤经度数画在黄道上，所以并不精确。</li>
+        <li>28宿采用古法，以春分点为赤经0度，周天为365.25度，用现代（2023年1月22日）的赤经数据以及钜星，重新划分了宿度。</li>
+        <li>此图为真实太阳系当时数据（使用天文库计算而来，误差在秒级）,1848年以前的数据误差在半个小时左右（月亮误差最大能到几个小时），1848年到1900年之间误差在3分钟以内，之后误差在秒级</li>
+        <li>此图方位，观看太阳与24节气圈即知道目前节气。行星之间方位夹角均为真实数据。木星、土星、天王、海王星距离均做了按比例缩减，否则难以画出</li>
+        <li>此图默认为天赤道俯视图，可切换至黄道俯视图</li>
+        <li>手机可以触摸屏幕后跳一天，或者点击屏幕右下方固定按钮"后跳一天"</li>
+        <li>如果显示不全，是因为图比较大，一定会有左右方向的滚动条，可尝试拖动</li>
+        <li>28宿圈附近显示有参宿，觜宿，角宿和斗宿。帮助定位北斗：杓携龙角，衡殷南斗，魁枕参首</li>
+        <li>同时显示赤道黄道时，有一条地平曲线，可用以判断日出日落时间，但因为二维平面的缘故，难以表达精确，故越接近二至点，偏差越大，最多时能偏差20分钟左右</li>
+        <li>在不显示距离模式下，行星逆行时，行星名会变红，带上红色方框，下方是逆行第几日的数字</li>
+        <li>日年角：指相对于冬至点，太阳所在点的角度（太阳赤经 - 冬至点赤经），用24小时制显示</li>
+      </ol>
+    <h4>当下方位宿度表</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>方位</th>
+          <th>宿度</th>
+          <th>总宿度(365.25)</th>
+          <th>赤经</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="r in direction">
+          <td>{{r.name}}</td>
+          <td>
+            {{r.xiang}}-{{r.xiu}}{{r.du}}度
+            <br />{{r.percent}}%
+          </td>
+          <td>{{r.duAll}}度</td>
+          <td>{{formatHourDeg(r.ra)}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>常用星当下方位表</h4>
+    <table>
+      <thead>
+        <th>星名</th>
+        <th>时角(度)</th>
+        <th>时角</th>
+        <th>方位/俯仰角</th>
+      </thead>
+      <tbody>
+        <tr v-for="r in stars">
+          <td>{{r.name}}</td>
+          <td>{{r.du.toFixed(1)}}°</td>
+          <td>{{r.timeAngle}}</td>
+          <td><span :style="{color:r.altitude<0?'red':'green'}">{{r.azimuth.toFixed(1)}}° /
+              {{r.altitude.toFixed(1)}}°</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>各大行星宿度表</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>星体</th>
+          <th>星宿</th>
+          <th>时角</th>
+          <th>方位角</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="r in info">
+          <td>{{r.body}}
+            <br /><span :style="{color:r.elat<0?'red':'green'}">黄纬 {{r.elat.toFixed(2)}}°</span>
+          </td>
+          <td>
+            {{r.xiang}}-{{r.xiu}}{{r.du}}度
+            <br />{{r.percent}}%
+            <br />{{r.duAll}}度
+          </td>
+          <td>
+            {{r.timeAngle}}
+            <br />{{formatHourDeg(r.ra)}}
+            <br />{{r.dec.toFixed(2)}}°
+          </td>
+          <td :style="{color:r.hor.altitude<0?'red':'green'}">
+            {{r.hor.azimuth.toFixed(2)}}°
+            <br />{{r.hor.altitude.toFixed(2)}}°
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button @click="nextMinute(-1);" style="position: fixed; bottom: 0; right: 530px;">前跳1分钟</button>
+    <button @click="nextMinute(1);" style="position: fixed; bottom: 0; right: 440px;">后跳1分钟</button>
+    <button @click="nextHour(-1);" style="position: fixed; bottom: 0; right: 350px;">前跳1小时</button>
+    <button @click="nextHour(1);" style="position: fixed; bottom: 0; right: 260px;">后跳1小时</button>
+    <button @click="nextday(-359);" style="position: fixed; bottom: 0; right: 170px;">前跳359天</button>
+    <button @click="nextday(359);" style="position: fixed; bottom: 0; right: 80px;">后跳359天</button>
+    <button @click="nextday(1);" style="position: fixed; bottom: 0; right: 0;">后跳一天</button>
+  </div>
+  <script src="app.js"></script>
+</body>
+
+</html>
