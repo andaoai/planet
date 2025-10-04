@@ -1374,25 +1374,40 @@ const app = {
         // 红色真太阳时
         context.fillStyle = 'red';
         context.fillText(solarTime, cx - context.measureText(solarTime).width/2, cy - 36);
+
+        // 农历日期和干支信息
         txt = l.toString().replace(/.*年/,'');
         context.fillText(txt, cx - context.measureText(txt).width/2, cy - 18);
+
+        // 添加干支纪年、纪月、纪时信息
+        let ganZhiYear = l.getYearInGanZhi(); // 甲子年份
+        let ganZhiMonth = l.getMonthInGanZhiExact(); // 甲子月份
+        let ganZhiDay = l.getDayInGanZhiExact(); // 甲子日
+        let ganZhiTime = l.getTimeInGanZhi(); // 甲子时
+
+        // 构建干支时间字符串
+        let ganZhiText = `${ganZhiYear}年 ${ganZhiMonth}月 ${ganZhiDay}日 ${ganZhiTime}时`;
+
+        // 显示干支信息（农历下方）
+        context.fillStyle = '#e0e0e0';
+        context.fillText(ganZhiText, cx - context.measureText(ganZhiText).width/2, cy + 0);
         let elon = sun.elon + 90;
         if(elon > 360) elon -= 360;
         let ra = sun.ra + 6;
         if(ra > 24) ra -= 24;
         txt = settings.s.useEcliptic ? `${getFormatTime(elon/360*24)}`
                 : `${getFormatTime(ra)}`;
-        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 36);
+        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 54); // 下移18像素
         txt = '日年角';
-        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 36 + 18);
+        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 54 + 18);
         ra = 24 - ra;
         elon = 360 - elon;
         txt = settings.s.useEcliptic ? `${getFormatTime(elon/360*24)}`
                 : `${getFormatTime(ra)}`;
         context.fillStyle = '#ccc';
-        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 36 + 18*2);
+        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 54 + 18*2);
         txt = '冬至点脚下时';
-        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 36 + 18*3);
+        context.fillText(txt, cx - context.measureText(txt).width/2, cy + 54 + 18*3);
         // let diffTxt = `差[${h}:${m}:${s}]`;
         // context.fillText(diffTxt, cx - context.measureText(diffTxt).width/2, cy - 18);
       }
