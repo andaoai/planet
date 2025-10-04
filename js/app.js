@@ -2055,6 +2055,11 @@ const app = {
       paint();
     }
 
+    // UI状态管理
+    const showCalendarSection = ref(false);
+    const showAdvancedSection = ref(false);
+    const showShortcutsSection = ref(true);
+
     return {
       now, info, position, nextday, nextHour, nextMinute,
       nextday, formatHourDeg,
@@ -2062,6 +2067,7 @@ const app = {
       settings, saveSettings, savePosition,
       nowProcess, today,
       timeSpan, timeUnit,
+      showCalendarSection, showAdvancedSection, showShortcutsSection,
     }
   }
 }

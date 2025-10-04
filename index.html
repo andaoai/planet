@@ -1,106 +1,551 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>天体图文</title>
+  <title>天体图文 - 中国天文可视化应用</title>
   <script src="js/lib/lunar.js"></script>
   <script src="js/lib/vue3.js"></script>
   <script src="js/lib/astronomy.browser.js?ver=2.4"></script>
-    <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* 响应式布局样式 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+      background-color: #f5f5f5;
+      line-height: 1.6;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+    }
+
+    /* 左侧控制面板 */
+    .control-panel {
+      width: 320px;
+      background-color: white;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .control-panel-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .control-panel-header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .control-panel-header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .control-section {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .control-section:last-child {
+      border-bottom: none;
+    }
+
+    .control-section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .control-section h3::before {
+      content: "🌟";
+      margin-right: 8px;
+    }
+
+    /* 主要内容区域 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    #my {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background-color: white;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* 表单控件样式 */
+    .checkbox-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 0;
+      transition: background-color 0.2s;
+      border-radius: 4px;
+    }
+
+    .checkbox-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      margin-right: 8px;
+      transform: scale(1.1);
+    }
+
+    .checkbox-item label {
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    /* 按钮样式 */
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #545b62;
+    }
+
+    /* 输入框样式 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    /* 位置输入组 */
+    .location-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* 时间输入组 */
+    .time-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .time-inputs input {
+      width: 60px;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .time-span-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 快捷键说明 */
+    .keyboard-shortcuts {
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      padding: 15px;
+    }
+
+    .keyboard-shortcuts h4 {
+      color: #dc3545;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .keyboard-shortcuts ol {
+      padding-left: 20px;
+    }
+
+    .keyboard-shortcuts li {
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    /* 底部导航栏 */
+    .bottom-nav {
+      background-color: white;
+      border-top: 1px solid #ddd;
+      padding: 15px 20px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-btn {
+      padding: 10px 16px;
+      border: 1px solid #ddd;
+      background-color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      min-width: 80px;
+    }
+
+    .nav-btn:hover {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    /* 折叠面板 */
+    .collapsible {
+      cursor: pointer;
+    }
+
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .collapsible.active .collapsible-content {
+      max-height: 1000px;
+    }
+
+    .collapsible.active h3::before {
+      content: "📂";
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .app-container {
+        flex-direction: column;
+      }
+
+      .control-panel {
+        width: 100%;
+        order: 2;
+        max-height: 40vh;
+      }
+
+      .main-content {
+        order: 1;
+      }
+
+      .canvas-container {
+        min-height: 50vh;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    /* 滚动条样式 */
+    .control-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .control-panel::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app">
-    <div>
-      <fieldset>
-        <legend>行星图配置：</legend>
-        <input type="checkbox" id="guijiMode" v-model="settings.s.guijiMode" /><label for="guijiMode">(快捷键O)轨迹模式</label>
-        <br/><input type="checkbox" id="faceMode" v-model="settings.s.faceMode" /><label for="faceMode">(快捷键I)显示俯视图/侧视图</label>
-        <br/><input type="checkbox" id="show24Jieqi" v-model="settings.s.show24Jieqi" /><label for="show24Jieqi">显示24节气圈</label>
-        <br/><input type="checkbox" id="show24JieqiClockwise" v-model="settings.s.show24JieqiClockwise" /><label for="show24JieqiClockwise">(快捷键L)显示24节气圈为顺时针/否则逆时针方向</label>
-        <br/><input type="checkbox" id="show24JieqiArea" v-model="settings.s.show24JieqiArea" /><label for="show24JieqiArea">显示24节气圈区域分割线</label>
-        <br/><input type="checkbox" id="show28Xiu" v-model="settings.s.show28Xiu" /><label for="show28Xiu">显示28宿</label>
-        <br/><input type="checkbox" id="show28Xiu" v-model="settings.s.use360" /><label for="use360">28宿刻度采用360度制/365.25度制</label>
-        <br/><input type="checkbox" id="show28XiuArea" v-model="settings.s.show28XiuArea" /><label for="show28XiuArea">显示28宿区域分割线</label>
-        <br/><input type="checkbox" id="showDouJian" v-model="settings.s.showDouJian" /><label for="showDouJian">显示12月历年建（斗建）</label>
-        <br/><input type="checkbox" id="showYueJian" v-model="settings.s.showYueJian" /><label for="showYueJian">显示12月历月建（斗建）</label>
-        <br/><input type="checkbox" id="show10Yueli" v-model="settings.s.show10Yueli" /><label for="show10Yueli">显示10月历</label>
-        <br/><input type="checkbox" id="showLine" v-model="settings.s.showLine" /><label for="showLine">(快捷键B)显示行星与地球连线</label>
-        <br/><input type="checkbox" id="showPlanetData" v-model="settings.s.showPlanetData" /><label for="showPlanetData">(快捷键P)显示行星名与数据</label>
-        <br/><input type="checkbox" id="showDirection" v-model="settings.s.showDirection" /><label for="showDirection">显示当前时辰的方位分割线</label>
-        <br/><input type="checkbox" id="showSunPlanetTrack" v-model="settings.s.showSunPlanetTrack" /><label for="showSunPlanetTrack">(快捷键U)显示太阳系各行星轨道</label>
-        <br/><input type="checkbox" id="showNowString" v-model="settings.s.showNowString" /><label for="showNowString">显示当前时间</label>
-        <br/><input type="checkbox" id="southUp" v-model="settings.s.southUp" /><label for="southUp">(快捷键Y)当前正南方永远朝上放</label>
-        <br/><input type="checkbox" id="useEcliptic" v-model="settings.s.useEcliptic" /><label for="useEcliptic">(快捷键Q)切换黄道面/赤道面</label>
-        <br/><input type="checkbox" id="BeiDouFaceSouth" v-model="settings.s.BeiDouFaceSouth" /><label for="BeiDouFaceSouth">(快捷键W)北斗七星位置是否面向正南观测（与面北镜像），面南可看到其斗柄指向角宿（杓携龙角），面北则看的是北斗真正的样子和朝向</label>
-        <br/><input type="checkbox" id="showPlanetDistance" v-model="settings.s.showPlanetDistance" /><label for="showPlanetDistance">(快捷键T)展示行星距离</label>
-        <br/><input type="checkbox" id="faceNorthImage" v-model="settings.s.faceNorthImage" /><label for="faceNorthImage">面北时星宿采用面南的左右镜像（否则采用立体投影）</label>
-        <br/><input type="checkbox" id="useDecAndElipticInNoDistanceMode" v-model="settings.s.useDecAndElipticInNoDistanceMode" /><label for="useDecAndElipticInNoDistanceMode">(快捷键S)不展示行星距离模式下用赤纬和黄道赤道同时显示(此时太阳在黄道位置略有偏差)</label>
-        <br/><input type="checkbox" id="onlyShow7Yao" v-model="settings.s.onlyShow7Yao" /><label for="onlyShow7Yao">只显示七曜</label>
-          <br/>
-        <button @click="resetCanvas();paint();">刷新显示</button>
-        <button @click="saveSettings()" style="margin-left: 8px;">保存设置</button>
-      </fieldset>
+  <div id="app" class="app-container">
+    <!-- 左侧控制面板 -->
+    <aside class="control-panel">
+      <div class="control-panel-header">
+        <h1>天体图文</h1>
+        <p>中国天文可视化应用</p>
+      </div>
 
-      <h3 style="color: red; font-weight: bold;">重要提示：按Y切换是否固定正南方向朝上</h3>
-      <fieldset>
-        <legend>其他便捷操作</legend>
-          <ol>
-            <li>行星图操作：按下J可自动跳到前一天，按下K自动跳到后一天，按下H回到今天。可按住K不放，即可观看行星动画</li>
-            <li>按下N：往前跳一小时，按下M：往后跳一小时</li>
-            <li>按下D：往前跳一分钟，按下F：往后跳一分钟</li>
-            <li>按下I：切换至侧视图，方便观看赤纬</li>
-            <li>按下O：切换至轨迹模式，查看行星运行轨迹</li>
-            <li>按下U：切换显示/不显示太阳系行星轨道（天王、海王星轨道不显示）</li>
-            <li>按下Y：切换是否固定方位十字（选择旋转方位十字或旋转24节气表）</li>
-            <li>按下L：切换24节气顺序</li>
-            <li>按下B：切换显示行星与地球连线</li>
-            <li>按下P：切换是否显示行星名与行星赤纬等数据</li>
-            <li>按下Q：切换黄道俯视角度/赤道俯视角度</li>
-            <li>按下A：跳到历元日期：1962年2月5日</li>
-            <li>Z,X,C：分别跳到早晨6点，午夜0点，下午18点，大写X跳到中午12点</li>
-            <li>按下W：切换北斗观测视角（面南/面北）</li>
-            <li>按E、W：以70年为单位前后跳，方便观察岁差</li>
-            <li>按T：切换是否展示行星距离。否则展示地球观察视效果，只根据黄纬区别上下，和距离区别谁覆盖谁</li>
-            <li>按S：在不展示行星距离情况下，切换用赤纬/黄纬绘制行星，赤纬时同时绘制黄道赤道</li>
-            <li>按G：切换28宿用360度或者365.25度</li>
-          </ol>
-       </fieldset>
-    </div>
-    <ul>
-      <li>经度：<input type="text" v-model.number="position.s.longitude" /></li>
-      <li>纬度：<input type="text" v-model.number="position.s.latitude" /></li>
-      <li>海拔：<input type="text" v-model.number="position.s.altitude" /></li>
-    </ul>
-    <button @click="savePosition()" style="margin-left: 8px;">保存经纬度</button>
-    <p>
-      <input type="text" :value="today.s.year" @input="nowProcess('year', $event.target.value)" style="width:3em;"/>
-      年<input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" style="width:3em;"/>
-      月<input type="number" :value="today.s.day" @input="nowProcess('day', $event.target.value)" style="width:3em;"/>
-      日&nbsp;<input type="number" :value="today.s.hour" @input="nowProcess('hour', $event.target.value)" style="width:3em;"/>
-      时<input type="number" :value="today.s.minute" @input="nowProcess('minute', $event.target.value)" style="width:3em;"/>
-      分<input type="number" :value="today.s.seconds" @input="nowProcess('seconds', $event.target.value)" style="width:3em;"/>
-      秒
-      <button style="margin-left: 12px;" @click="resetCanvas();paint();">刷新显示</button>
-    </p>
-    <p>快捷键E、R时间跨度: <input v-model="timeSpan" size="3"/>
-    <select v-model="timeUnit">
-      <option v-for="r in '年月日'" :value="r">{{r}}</option>
-    </select>
-    </p>
-    <canvas id="my"></canvas>
-    
+      <!-- 基础显示设置 -->
+      <div class="control-section">
+        <h3>基础显示</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="guijiMode" v-model="settings.s.guijiMode">
+            <label for="guijiMode">轨迹模式 (O)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="faceMode" v-model="settings.s.faceMode">
+            <label for="faceMode">俯视图/侧视图 (I)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="showPlanetDistance" v-model="settings.s.showPlanetDistance">
+            <label for="showPlanetDistance">展示行星距离 (T)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="showPlanetData" v-model="settings.s.showPlanetData">
+            <label for="showPlanetData">显示行星数据 (P)</label>
+          </div>
+        </div>
+      </div>
 
-        <button @click="nextMinute(-1);" style="position: fixed; bottom: 0; right: 530px;">前跳1分钟</button>
-    <button @click="nextMinute(1);" style="position: fixed; bottom: 0; right: 440px;">后跳1分钟</button>
-    <button @click="nextHour(-1);" style="position: fixed; bottom: 0; right: 350px;">前跳1小时</button>
-    <button @click="nextHour(1);" style="position: fixed; bottom: 0; right: 260px;">后跳1小时</button>
-    <button @click="nextday(-359);" style="position: fixed; bottom: 0; right: 170px;">前跳359天</button>
-    <button @click="nextday(359);" style="position: fixed; bottom: 0; right: 80px;">后跳359天</button>
-    <button @click="nextday(1);" style="position: fixed; bottom: 0; right: 0;">后跳一天</button>
+      <!-- 历法显示 -->
+      <div class="control-section collapsible" :class="{ active: showCalendarSection }" @click="showCalendarSection = !showCalendarSection">
+        <h3>历法显示</h3>
+        <div class="collapsible-content">
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="show24Jieqi" v-model="settings.s.show24Jieqi">
+              <label for="show24Jieqi">显示24节气圈</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="show24JieqiClockwise" v-model="settings.s.show24JieqiClockwise">
+              <label for="show24JieqiClockwise">24节气顺时针 (L)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="show28Xiu" v-model="settings.s.show28Xiu">
+              <label for="show28Xiu">显示28宿</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="showDouJian" v-model="settings.s.showDouJian">
+              <label for="showDouJian">显示12月历年建</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="showYueJian" v-model="settings.s.showYueJian">
+              <label for="showYueJian">显示12月历月建</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="show10Yueli" v-model="settings.s.show10Yueli">
+              <label for="show10Yueli">显示10月历</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 高级设置 -->
+      <div class="control-section collapsible" :class="{ active: showAdvancedSection }" @click="showAdvancedSection = !showAdvancedSection">
+        <h3>高级设置</h3>
+        <div class="collapsible-content">
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="useEcliptic" v-model="settings.s.useEcliptic">
+              <label for="useEcliptic">黄道面/赤道面 (Q)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="southUp" v-model="settings.s.southUp">
+              <label for="southUp">正南方向朝上 (Y)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="BeiDouFaceSouth" v-model="settings.s.BeiDouFaceSouth">
+              <label for="BeiDouFaceSouth">北斗面南观测 (W)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="showLine" v-model="settings.s.showLine">
+              <label for="showLine">行星连线 (B)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="showSunPlanetTrack" v-model="settings.s.showSunPlanetTrack">
+              <label for="showSunPlanetTrack">行星轨道 (U)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="onlyShow7Yao" v-model="settings.s.onlyShow7Yao">
+              <label for="onlyShow7Yao">只显示七曜</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 观测位置 -->
+      <div class="control-section">
+        <h3>观测位置</h3>
+        <div class="location-inputs">
+          <div class="form-group">
+            <label>经度</label>
+            <input type="number" v-model.number="position.s.longitude" step="0.0001">
+          </div>
+          <div class="form-group">
+            <label>纬度</label>
+            <input type="number" v-model.number="position.s.latitude" step="0.0001">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>海拔 (米)</label>
+            <input type="number" v-model.number="position.s.altitude">
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" @click="savePosition()">保存位置</button>
+          <button class="btn btn-secondary" @click="resetCanvas();paint()">刷新显示</button>
+        </div>
+      </div>
+
+      <!-- 时间设置 -->
+      <div class="control-section">
+        <h3>时间设置</h3>
+        <div class="form-group">
+          <label>日期时间</label>
+          <div class="time-inputs">
+            <input type="number" :value="today.s.year" @input="nowProcess('year', $event.target.value)" placeholder="年">
+            <span>年</span>
+            <input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" placeholder="月">
+            <span>月</span>
+            <input type="number" :value="today.s.day" @input="nowProcess('day', $event.target.value)" placeholder="日">
+            <span>日</span>
+            <input type="number" :value="today.s.hour" @input="nowProcess('hour', $event.target.value)" placeholder="时">
+            <span>时</span>
+            <input type="number" :value="today.s.minute" @input="nowProcess('minute', $event.target.value)" placeholder="分">
+            <span>分</span>
+            <input type="number" :value="today.s.seconds" @input="nowProcess('seconds', $event.target.value)" placeholder="秒">
+            <span>秒</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>快捷时间跨度 (E/R)</label>
+          <div class="time-span-input">
+            <input type="number" v-model="timeSpan" size="3" style="width: 80px;">
+            <select v-model="timeUnit" style="width: 60px;">
+              <option v-for="r in '年月日'" :value="r">{{r}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷键说明 -->
+      <div class="control-section collapsible" :class="{ active: showShortcutsSection }" @click="showShortcutsSection = !showShortcutsSection">
+        <h3>快捷键说明</h3>
+        <div class="collapsible-content">
+          <div class="keyboard-shortcuts">
+            <h4>⚠️ 重要提示：按Y固定正南方向朝上</h4>
+            <ol>
+              <li><strong>J/K</strong> - 前后一天，按住K播放动画</li>
+              <li><strong>N/M</strong> - 前后一小时</li>
+              <li><strong>D/F</strong> - 前后一分钟</li>
+              <li><strong>I</strong> - 切换侧视图</li>
+              <li><strong>O</strong> - 切换轨迹模式</li>
+              <li><strong>A</strong> - 跳到历元：1962年2月5日</li>
+              <li><strong>Z/X/C</strong> - 跳到6点/0点/18点</li>
+              <li><strong>Shift+X</strong> - 跳到12点</li>
+              <li><strong>W</strong> - 切换北斗观测视角</li>
+              <li><strong>E/R</strong> - 70年为单位跳转</li>
+              <li><strong>G</strong> - 28宿360/365.25度制</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+      <!-- 画布容器 -->
+      <div class="canvas-container">
+        <canvas id="my"></canvas>
+      </div>
+
+      <!-- 底部导航栏 -->
+      <nav class="bottom-nav">
+        <div class="nav-buttons">
+          <button class="nav-btn" @click="nextday(-1)">前一天 (J)</button>
+          <button class="nav-btn" @click="nextday(1)">后一天 (K)</button>
+          <button class="nav-btn" @click="nextHour(-1)">前1小时 (N)</button>
+          <button class="nav-btn" @click="nextHour(1)">后1小时 (M)</button>
+          <button class="nav-btn" @click="nextMinute(-1)">前1分钟 (D)</button>
+          <button class="nav-btn" @click="nextMinute(1)">后1分钟 (F)</button>
+          <button class="nav-btn" @click="now.value = new Date(); intIdx = makeInterval(); paint();">今天 (H)</button>
+        </div>
+      </nav>
+    </main>
   </div>
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
