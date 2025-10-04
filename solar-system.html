@@ -182,7 +182,7 @@
         createApp({
             setup() {
                 const canvas = ref(null);
-                const canvasSize = ref(800);
+                const canvasSize = ref(1000);
                 const currentTime = ref(new Date());
                 const animationSpeed = ref(0);
                 const showOrbits = ref(true);
@@ -192,15 +192,15 @@
 
                 // 行星配置
                 const planets = ref([
-                    { name: '水星', englishName: 'Mercury', color: '#A67B5B', radius: 4, orbitRadius: 60 },
-                    { name: '金星', englishName: 'Venus', color: '#FFC649', radius: 8, orbitRadius: 90 },
-                    { name: '地球', englishName: 'Earth', color: '#4169E1', radius: 12, orbitRadius: 120 },
-                    { name: '火星', englishName: 'Mars', color: '#CD5C5C', radius: 6, orbitRadius: 150 },
-                    { name: '木星', englishName: 'Jupiter', color: '#DAA520', radius: 20, orbitRadius: 200 },
-                    { name: '土星', englishName: 'Saturn', color: '#F4A460', radius: 18, orbitRadius: 250 },
-                    { name: '天王星', englishName: 'Uranus', color: '#4FD0E0', radius: 12, orbitRadius: 300 },
-                    { name: '海王星', englishName: 'Neptune', color: '#4169E1', radius: 12, orbitRadius: 340 },
-                    { name: '冥王星', englishName: 'Pluto', color: '#9CA4AB', radius: 3, orbitRadius: 380 }
+                    { name: '水星', englishName: 'Mercury', color: '#A67B5B', radius: 4, orbitRadius: 40 },
+                    { name: '金星', englishName: 'Venus', color: '#FFC649', radius: 8, orbitRadius: 65 },
+                    { name: '地球', englishName: 'Earth', color: '#4169E1', radius: 12, orbitRadius: 130 },
+                    { name: '火星', englishName: 'Mars', color: '#CD5C5C', radius: 6, orbitRadius: 180 },
+                    { name: '木星', englishName: 'Jupiter', color: '#DAA520', radius: 20, orbitRadius: 240 },
+                    { name: '土星', englishName: 'Saturn', color: '#F4A460', radius: 18, orbitRadius: 300 },
+                    { name: '天王星', englishName: 'Uranus', color: '#4FD0E0', radius: 12, orbitRadius: 360 },
+                    { name: '海王星', englishName: 'Neptune', color: '#4169E1', radius: 12, orbitRadius: 400 },
+                    { name: '冥王星', englishName: 'Pluto', color: '#9CA4AB', radius: 3, orbitRadius: 440 }
                 ]);
 
                 // 月球配置
