@@ -32,7 +32,13 @@
         .control-group {
             display: inline-block;
             margin-right: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            vertical-align: top;
+        }
+
+        .control-group-full {
+            display: block;
+            margin-bottom: 15px;
         }
 
         .control-group label {
@@ -129,6 +135,26 @@
                     <button @click="now">当前时间 (H)</button>
                 </div>
 
+                <div class="control-group-full">
+                    <label>精确时间输入:</label>
+                    <div style="margin-left: 120px;">
+                        <input type="number" v-model="yearInput" min="1500" max="2500" style="width: 80px;" placeholder="年">年
+                        <input type="number" v-model="monthInput" min="1" max="12" style="width: 60px;" placeholder="月">月
+                        <input type="number" v-model="dayInput" min="1" max="31" style="width: 60px;" placeholder="日">日
+                        <input type="number" v-model="hourInput" min="0" max="23" style="width: 60px;" placeholder="时">时
+                        <input type="number" v-model="minuteInput" min="0" max="59" style="width: 60px;" placeholder="分">分
+                        <input type="number" v-model="secondInput" min="0" max="59" style="width: 60px;" placeholder="秒">秒
+                        <button @click="jumpToTime" style="margin-left: 10px;">跳转时间</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>年份控制:</label>
+                    <button @click="previousYear">上一年 (U)</button>
+                    <button @click="nextYear">下一年 (I)</button>
+                    <button @click="jumpToYear">当前年份</button>
+                </div>
+
                 <div class="control-group">
                     <label>播放速度:</label>
                     <select v-model="animationSpeed">
@@ -153,7 +179,7 @@
                 </div>
 
                 <div class="help-text">
-                    键盘快捷键：J/K - 前进/后退一天 | N/M - 前进/后退一小时 | H - 返回当前时间 | 空格 - 暂停/播放
+                    键盘快捷键：J/K - 前进/后退一天 | N/M - 前进/后退一小时 | U/I - 前进/后退一年 | H - 返回当前时间 | 空格 - 暂停/播放
                 </div>
             </div>
 
@@ -189,6 +215,12 @@
                 const showLabels = ref(true);
                 const showCoords = ref(false);
                 const animationFrame = ref(null);
+                const yearInput = ref(new Date().getFullYear());
+                const monthInput = ref(new Date().getMonth() + 1);
+                const dayInput = ref(new Date().getDate());
+                const hourInput = ref(new Date().getHours());
+                const minuteInput = ref(new Date().getMinutes());
+                const secondInput = ref(new Date().getSeconds());
 
                 // 行星配置
                 const planets = ref([
@@ -425,6 +457,58 @@
 
                 function now() {
                     currentTime.value = new Date();
+                    yearInput.value = currentTime.value.getFullYear();
+                    monthInput.value = currentTime.value.getMonth() + 1;
+                    dayInput.value = currentTime.value.getDate();
+                    hourInput.value = currentTime.value.getHours();
+                    minuteInput.value = currentTime.value.getMinutes();
+                    secondInput.value = currentTime.value.getSeconds();
+                    updateVisualization();
+                }
+
+                // 精确时间跳转函数
+                function jumpToTime() {
+                    const year = parseInt(yearInput.value);
+                    const month = parseInt(monthInput.value);
+                    const day = parseInt(dayInput.value);
+                    const hour = parseInt(hourInput.value);
+                    const minute = parseInt(minuteInput.value);
+                    const second = parseInt(secondInput.value);
+
+                    if (year >= 1500 && year <= 2500 &&
+                        month >= 1 && month <= 12 &&
+                        day >= 1 && day <= 31 &&
+                        hour >= 0 && hour <= 23 &&
+                        minute >= 0 && minute <= 59 &&
+                        second >= 0 && second <= 59) {
+
+                        currentTime.value.setFullYear(year, month - 1, day);
+                        currentTime.value.setHours(hour, minute, second, 0);
+                        updateVisualization();
+                    }
+                }
+
+                // 年份控制函数
+                function jumpToYear() {
+                    currentTime.value = new Date();
+                    yearInput.value = currentTime.value.getFullYear();
+                    monthInput.value = currentTime.value.getMonth() + 1;
+                    dayInput.value = currentTime.value.getDate();
+                    hourInput.value = currentTime.value.getHours();
+                    minuteInput.value = currentTime.value.getMinutes();
+                    secondInput.value = currentTime.value.getSeconds();
+                    updateVisualization();
+                }
+
+                function previousYear() {
+                    currentTime.value.setFullYear(currentTime.value.getFullYear() - 1);
+                    yearInput.value = currentTime.value.getFullYear();
+                    updateVisualization();
+                }
+
+                function nextYear() {
+                    currentTime.value.setFullYear(currentTime.value.getFullYear() + 1);
+                    yearInput.value = currentTime.value.getFullYear();
                     updateVisualization();
                 }
 
@@ -460,6 +544,12 @@
                             break;
                         case 'h':
                             now();
+                            break;
+                        case 'u':
+                            previousYear();
+                            break;
+                        case 'i':
+                            nextYear();
                             break;
                         case ' ':
                             event.preventDefault();
@@ -509,12 +599,22 @@
                     showOrbits,
                     showLabels,
                     showCoords,
+                    yearInput,
+                    monthInput,
+                    dayInput,
+                    hourInput,
+                    minuteInput,
+                    secondInput,
                     formatTime,
                     previousDay,
                     nextDay,
                     previousHour,
                     nextHour,
-                    now
+                    now,
+                    jumpToTime,
+                    jumpToYear,
+                    previousYear,
+                    nextYear
                 };
             }
         }).mount('#app');
