@@ -1652,24 +1652,30 @@ const app = {
         paint();
         syncTimeToAllViews();
       }else if(k == 90){ // Z 跳到当天的 06:00:00
-        now.value.setHours(6);
-        now.value.setMinutes(0);
-        now.value.setSeconds(getTrueSolarTimeDiff());
+        let newDate = new Date(now.value);
+        newDate.setHours(6);
+        newDate.setMinutes(0);
+        newDate.setSeconds(getTrueSolarTimeDiff());
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         paint();
         syncTimeToAllViews();
       }else if(k == 88){ // X 跳到当天的 00:00:00
+        let newDate = new Date(now.value);
         if(!event.shiftKey){
-          now.value.setDate(now.value.getDate() + (now.value.getHours() < 12 ? 0 : 1));
+          newDate.setDate(newDate.getDate() + (newDate.getHours() < 12 ? 0 : 1));
         }
-        now.value.setHours(event.shiftKey ? 12 : 0);
-        now.value.setMinutes(0);
-        now.value.setSeconds(getTrueSolarTimeDiff());
+        newDate.setHours(event.shiftKey ? 12 : 0);
+        newDate.setMinutes(0);
+        newDate.setSeconds(getTrueSolarTimeDiff());
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         paint();
         syncTimeToAllViews();
       }else if(k == 67){ // C 跳到当天的 18:00:00
-        now.value.setHours(18);
-        now.value.setMinutes(0);
-        now.value.setSeconds(getTrueSolarTimeDiff());
+        let newDate = new Date(now.value);
+        newDate.setHours(18);
+        newDate.setMinutes(0);
+        newDate.setSeconds(getTrueSolarTimeDiff());
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         paint();
         syncTimeToAllViews();
       }else if(k == 87){ // W 切换北斗视图
@@ -1686,7 +1692,9 @@ const app = {
         let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
         if(timeUnit.value == '月') day *= 30;
         if(timeUnit.value == '年') day *= 365.25;
-        now.value.setDate(now.value.getDate() - day);
+        let newDate = new Date(now.value);
+        newDate.setDate(newDate.getDate() - day);
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         paint();
         syncTimeToAllViews();
       }
@@ -1694,7 +1702,9 @@ const app = {
         let day = parseFloat((timeSpan.value+'').replace(/[,，]/g,''));
         if(timeUnit.value == '月') day *= 30;
         if(timeUnit.value == '年') day *= 365.25;
-        now.value.setDate(now.value.getDate() + day);
+        let newDate = new Date(now.value);
+        newDate.setDate(newDate.getDate() + day);
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         paint();
         syncTimeToAllViews();
       }else if(k == 84){ // T, 切换是否展示行星距离
@@ -2127,7 +2137,8 @@ const app = {
     function handleSolarSystemAnimation() {
       if (window.solarSystemVisualizer && solarSystemSettings.animationSpeed > 0) {
         // 更新太阳系时间
-        now.value.setTime(now.value.getTime() + parseInt(solarSystemSettings.animationSpeed) * 1000);
+        let newDate = new Date(now.value.getTime() + parseInt(solarSystemSettings.animationSpeed) * 1000);
+        now.value = newDate; // 创建新的Date对象确保响应式更新
         refreshInfo();
         paint();
         syncTimeToAllViews();
