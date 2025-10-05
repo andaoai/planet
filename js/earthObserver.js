@@ -111,7 +111,9 @@ const app = {
     function nextday(dd) {
       killInterval();
       let day = now.value;
-      day.setDate(day.getDate() + dd);
+      let newDay = new Date(day);
+      newDay.setDate(newDay.getDate() + dd);
+      now.value = newDay; // 创建新的Date对象确保响应式更新
       paint();
       // 同步所有视图
       syncTimeToAllViews();
@@ -120,7 +122,9 @@ const app = {
     function nextHour(dh){
       killInterval();
       let day = now.value;
-      day.setHours(day.getHours() + dh);
+      let newDay = new Date(day);
+      newDay.setHours(newDay.getHours() + dh);
+      now.value = newDay; // 创建新的Date对象确保响应式更新
       paint();
       // 同步所有视图
       syncTimeToAllViews();
@@ -129,7 +133,9 @@ const app = {
     function nextMinute(dm){
       killInterval();
       let day = now.value;
-      day.setMinutes(day.getMinutes() + dm);
+      let newDay = new Date(day);
+      newDay.setMinutes(newDay.getMinutes() + dm);
+      now.value = newDay; // 创建新的Date对象确保响应式更新
       paint();
       // 同步所有视图
       syncTimeToAllViews();
@@ -1234,53 +1240,7 @@ const app = {
         }
       }
 
-      // 标注斗建年建
-      context.font = '16px monospace';
-      let dzinit = get12yl(observer);
-      if (settings.s.showDouJian && !settings.s.guijiMode && settings.s.faceMode) {
-        // console.log(dzinit);
-        let rdz = rx + 55;
-        let sa = southAngle;
-        for (let i = 0; i < 12; i++) {
-          let j = dzinit.year - i;
-          if (j < 0) break; //j += 12;
-          let cj = (i / 12 + 270 / 360) * 2 * Math.PI + sa;
-          dt1 = rdz * Math.cos(cj);
-          dt2 = rdz * Math.sin(cj);
-          if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : '#e0e0e0';
-          let zf = dzinit.offset3 > 0 ? '+' : (dzinit.offset3 == 0 ? '' : '-');
-          let txt = dizhi[j] + (i == 0 ? `年第${dzinit.dy}天(${zf}${Math.abs(dzinit.offset3)})约偏${dzinit.offset2}°` : '');
-          let w = context.measureText(txt).width;
-          context.fillText(txt, cx + dt1 - w/2, cy - dt2);
-          if (i == 0) {
-            context.strokeStyle = 'red';
-            context.strokeRect(cx + dt1 - w/2 - 4, cy - dt2 - 18, w + 8, 32 - 8);
-          }
-        }
-      }
-      if (settings.s.showYueJian && !settings.s.guijiMode && settings.s.faceMode) {
-        // 标注斗建月建
-        let rdz = r - 50 + 10 - 10;
-        let sa = southAngle;
-        for (let i = 0; i < 12; i++) {
-          let j = dzinit.month - i;
-          if (j < 0) j += 12;
-          let cj = (i / 12 + 270 / 360) * 2 * Math.PI + sa;
-          dt1 = rdz * Math.cos(cj);
-          dt2 = rdz * Math.sin(cj);
-          if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = j == 0 ? 'rgb(250,0,0)' : '#e0e0e0';
-          let txt = dizhi[j] + (i == 0 ? '月' : '');
-          let w = context.measureText(txt).width;
-          context.fillText(txt, cx + dt1 - w/2, cy - dt2);
-          if (i == 0) {
-            context.strokeStyle = 'red';
-            context.strokeRect(cx + dt1 - w/2 - 4, cy - dt2 - 18, w + 8, 32 - 8);
-          }
-        }
-      }
-
+      
       // 标注此时正南方向
       if(settings.s.showDirection && !settings.s.guijiMode && settings.s.faceMode){
         let r1 = rx + 25 + 12;
@@ -1381,22 +1341,9 @@ const app = {
         context.fillStyle = 'red';
         context.fillText(solarTime, cx - context.measureText(solarTime).width/2, cy - 36);
 
-        // 农历日期和干支信息
+        // 农历日期信息
         txt = l.toString().replace(/.*年/,'');
         context.fillText(txt, cx - context.measureText(txt).width/2, cy - 18);
-
-        // 添加干支纪年、纪月、纪时信息
-        let ganZhiYear = l.getYearInGanZhi(); // 甲子年份
-        let ganZhiMonth = l.getMonthInGanZhiExact(); // 甲子月份
-        let ganZhiDay = l.getDayInGanZhiExact(); // 甲子日
-        let ganZhiTime = l.getTimeInGanZhi(); // 甲子时
-
-        // 构建干支时间字符串
-        let ganZhiText = `${ganZhiYear}年 ${ganZhiMonth}月 ${ganZhiDay}日 ${ganZhiTime}时`;
-
-        // 显示干支信息（农历下方）
-        context.fillStyle = '#e0e0e0';
-        context.fillText(ganZhiText, cx - context.measureText(ganZhiText).width/2, cy + 0);
         let elon = sun.elon + 90;
         if(elon > 360) elon -= 360;
         let ra = sun.ra + 6;
@@ -1561,38 +1508,7 @@ const app = {
         }
       }
 
-      if (settings.s.show10Yueli && !settings.s.guijiMode && settings.s.faceMode) {
-        // 标注十月历
-        let tginit = get10yl();
-        // console.log('10yl:', tginit);
-        let rdz = rx + 165;
-        let today = now.value;
-        let firstDayAngle = getJupiterAngle(new Date(today - (tginit.gy - 1) * dayMicroSeconds));
-        let extra = `年${tiangan[tginit.month]}月`;
-        // console.log('木星本年第一天角度', firstDayAngle);
-        for (let i = 0; i < 2; i++) {
-          let j = tginit.year + i;
-          if (j >= 10) j -= 10;
-          let cj = (i / 10) * 2 * Math.PI + firstDayAngle + southAngle;
-          // console.log('cj', j, tiangan[j], firstDayAngle, cj/Math.PI/2*360);
-          dt1 = rdz * Math.cos(cj);
-          dt2 = rdz * Math.sin(cj);
-          if(!settings.s.BeiDouFaceSouth)dt1 = -dt1;
-          context.fillStyle = '#e0e0e0';
-          let txt = tiangan[j] + (i == 0 ? extra : '');
-          context.fillText(txt, cx + dt1, cy - dt2 - 22);
-          if (i == 0) {
-            context.fillText(`第${tginit.monthd}天`, cx + dt1, cy - dt2);
-            let txt2 = `总第${tginit.gy}天`;
-            context.fillText(txt2, cx + dt1, cy - dt2 + 22);
-            context.strokeStyle = 'red';
-            let w = context.measureText(txt).width;
-            let w2 = context.measureText(txt2).width;
-            context.strokeRect(cx + dt1 - 4, cy - dt2 - 18 - 22, Math.max(w,w2) + 8, 32 - 8 + 44);
-          }
-        }
       }
-    }
 
     function getFormatTime(ra){
       let milli = Math.round(ra * 3.6e+6);
@@ -2168,7 +2084,9 @@ const app = {
       let oldDate = getDateByInput(nowBak ?? today.s);
       today.s[cls] = value;
       let newDate = getDateByInput(today.s);
-      now.value.setSeconds(now.value.getSeconds() + (newDate-oldDate)/1000);
+      let updatedDate = new Date(now.value);
+      updatedDate.setSeconds(updatedDate.getSeconds() + (newDate-oldDate)/1000);
+      now.value = updatedDate; // 创建新的Date对象确保响应式更新
       paint();
     }
 
@@ -2268,7 +2186,52 @@ const app = {
       nowProcess, today,
       timeSpan, timeUnit,
       showCalendarSection, showAdvancedSection, showShortcutsSection,
-      solarSystemSettings, updateSolarSystemSettings
+      solarSystemSettings, updateSolarSystemSettings,
+      octoberCalendar: Vue.computed(() => {
+      // 明确依赖响应式数据
+      const currentTime = now.value.getTime();
+      return get10yl();
+    }),
+      ganzhiCalendar: Vue.computed(() => {
+      // 明确依赖响应式数据
+      const currentTime = now.value.getTime();
+      try {
+        const l = Lunar.fromDate(getJulianDate(now.value)[0]);
+        return {
+          year: l.getYearInGanZhi(),
+          month: l.getMonthInGanZhiExact(),
+          day: l.getDayInGanZhiExact(),
+          time: l.getTimeInGanZhi()
+        };
+      } catch (e) {
+        // 如果计算失败，返回默认值
+        return { year: '甲子', month: '甲子', day: '甲子', time: '甲子' };
+      }
+    }),
+    lunarInfo: Vue.computed(() => {
+      // 明确依赖响应式数据
+      const currentTime = now.value.getTime();
+      try {
+        const l = Lunar.fromDate(getJulianDate(now.value)[0]);
+        return l.toString().replace(/.*年/,'');
+      } catch (e) {
+        // 如果计算失败，返回默认值
+        return '正月初一';
+      }
+    }),
+    doujianInfo: Vue.computed(() => {
+      // 明确依赖响应式数据
+      const currentTime = now.value.getTime();
+      try {
+        const observer = new Astronomy.Observer(position.s.latitude, position.s.longitude, position.s.altitude);
+        return get12yl(observer);
+      } catch (e) {
+        // 如果计算失败，返回默认值
+        return { year: 0, dizhi: '', month: 0, dy: 0, offset2: 0, offset3: 0 };
+      }
+    }),
+      tiangan: tiangan,
+      dizhi: CALENDAR.DIZHI
     }
   }
 }

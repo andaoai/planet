@@ -277,6 +277,152 @@
       font-weight: 600;
     }
 
+    /* 时间控制布局 */
+    .time-control-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* 历法布局容器 */
+    .calendar-layout {
+      flex: 0 0 750px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+    }
+
+    /* 十月历区域 */
+    .october-calendar-section {
+      flex: 1;
+      background-color: #2d2d2d;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #555555;
+      min-width: 200px;
+    }
+
+    /* 农历区域 */
+    .lunar-calendar-section {
+      flex: 1;
+      background-color: #2d2d2d;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #555555;
+      min-width: 200px;
+    }
+
+    /* 斗建区域 */
+    .doujian-calendar-section {
+      flex: 1;
+      background-color: #2d2d2d;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #555555;
+      min-width: 200px;
+    }
+
+    /* 干支区域 */
+    .ganzhi-calendar-section {
+      flex: 1;
+      background-color: #2d2d2d;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #555555;
+      min-width: 200px;
+    }
+
+    .october-calendar-section h4,
+    .lunar-calendar-section h4,
+    .ganzhi-calendar-section h4,
+    .doujian-calendar-section h4 {
+      color: #ff6b6b;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      text-align: center;
+      border-bottom: 1px solid #555555;
+      padding-bottom: 6px;
+    }
+
+    .calendar-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calendar-item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 8px;
+      background-color: #404040;
+      border-radius: 4px;
+      border: 1px solid #666666;
+    }
+
+    .calendar-label {
+      color: #ffd700;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .calendar-day {
+      color: #87ceeb;
+      font-size: 0.9rem;
+    }
+
+    .calendar-total {
+      color: #98fb98;
+      font-size: 0.85rem;
+    }
+
+    .lunar-info {
+      color: #dda0dd;
+      font-size: 0.9rem;
+    }
+
+    .ganzhi-year {
+      color: #ffd700;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .ganzhi-month {
+      color: #87ceeb;
+      font-size: 0.85rem;
+    }
+
+    .ganzhi-day {
+      color: #98fb98;
+      font-size: 0.85rem;
+    }
+
+    .ganzhi-hour {
+      color: #f0e68c;
+      font-size: 0.85rem;
+    }
+
+    .doujian-year {
+      color: #ff6347;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .doujian-year-detail {
+      color: #ffa500;
+      font-size: 0.85rem;
+    }
+
+    .doujian-month {
+      color: #20b2aa;
+      font-size: 0.85rem;
+    }
+
+    /* 时间控制区域 */
+    .time-control-section {
+      flex: 1;
+    }
+
     /* 时间控制组 */
     .time-control-group {
       display: flex;
@@ -546,6 +692,18 @@
         gap: 6px;
       }
 
+      .time-control-layout {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .calendar-layout {
+        flex: 0 0 auto;
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+      }
+
       .time-control-group .time-inputs {
         gap: 5px;
       }
@@ -620,29 +778,98 @@
         <!-- 时间控制 -->
         <div class="control-section">
           <h3>时间控制</h3>
-          <div class="time-control-group">
-            <div class="time-inputs">
-              <input type="number" :value="today.s.year" @input="nowProcess('year', $event.target.value)" placeholder="年" class="year-input">
-              <span>年</span>
-              <input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" placeholder="月" size="2">
-              <span>月</span>
-              <input type="number" :value="today.s.day" @input="nowProcess('day', $event.target.value)" placeholder="日" size="2">
-              <span>日</span>
-              <input type="number" :value="today.s.hour" @input="nowProcess('hour', $event.target.value)" placeholder="时" size="2">
-              <span>时</span>
-              <input type="number" :value="today.s.minute" @input="nowProcess('minute', $event.target.value)" placeholder="分" size="2">
-              <span>分</span>
-              <input type="number" :value="today.s.seconds" @input="nowProcess('seconds', $event.target.value)" placeholder="秒" size="2">
-              <span>秒</span>
+          <div class="time-control-layout">
+            <!-- 左侧：历法信息 -->
+            <div class="calendar-layout">
+              <!-- 十月历 -->
+              <div class="october-calendar-section" v-if="settings.s.show10Yueli && tiangan && octoberCalendar">
+                <h4>十月历</h4>
+                <div class="calendar-content">
+                  <div class="calendar-item">
+                    <span class="calendar-label">{{ tiangan[octoberCalendar.year] || '甲' }}年{{ tiangan[octoberCalendar.month] || '子' }}月</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="calendar-day">第{{ octoberCalendar.monthd || 1 }}天</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="calendar-total">总第{{ octoberCalendar.gy || 1 }}天</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 斗建 -->
+              <div class="doujian-calendar-section" v-if="settings.s.showDouJian && dizhi && doujianInfo">
+                <h4>斗建</h4>
+                <div class="calendar-content">
+                  <div class="calendar-item">
+                    <span class="doujian-year">年建：{{ dizhi[doujianInfo.year] || '未知' }}</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="doujian-year-detail">第{{ doujianInfo.dy || 0 }}天</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="doujian-month">月建：{{ dizhi[doujianInfo.month] || '未知' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 农历信息 -->
+              <div class="lunar-calendar-section">
+                <h4>农历</h4>
+                <div class="calendar-content">
+                  <div class="calendar-item">
+                    <span class="lunar-info">{{ lunarInfo || '正月初一' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 干支历 -->
+              <div class="ganzhi-calendar-section">
+                <h4>干支历</h4>
+                <div class="calendar-content">
+                  <div class="calendar-item">
+                    <span class="ganzhi-year">{{ ganzhiCalendar?.year || '甲子' }}年</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="ganzhi-month">{{ ganzhiCalendar?.month || '甲子' }}月</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="ganzhi-day">{{ ganzhiCalendar?.day || '甲子' }}日</span>
+                  </div>
+                  <div class="calendar-item">
+                    <span class="ganzhi-hour">{{ ganzhiCalendar?.time || '甲子' }}时辰</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="nav-buttons">
-              <button class="nav-btn" @click="nextday(-1)">前一天 (J)</button>
-              <button class="nav-btn" @click="nextday(1)">后一天 (K)</button>
-              <button class="nav-btn" @click="nextHour(-1)">前1小时 (N)</button>
-              <button class="nav-btn" @click="nextHour(1)">后1小时 (M)</button>
-              <button class="nav-btn" @click="nextMinute(-1)">前1分钟 (D)</button>
-              <button class="nav-btn" @click="nextMinute(1)">后1分钟 (F)</button>
-              <button class="nav-btn" @click="now.value = new Date(); intIdx = makeInterval(); paint();">今天 (H)</button>
+
+            <!-- 右侧：时间控制 -->
+            <div class="time-control-section">
+              <div class="time-control-group">
+                <div class="time-inputs">
+                  <input type="number" :value="today.s.year" @input="nowProcess('year', $event.target.value)" placeholder="年" class="year-input">
+                  <span>年</span>
+                  <input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" placeholder="月" size="2">
+                  <span>月</span>
+                  <input type="number" :value="today.s.day" @input="nowProcess('day', $event.target.value)" placeholder="日" size="2">
+                  <span>日</span>
+                  <input type="number" :value="today.s.hour" @input="nowProcess('hour', $event.target.value)" placeholder="时" size="2">
+                  <span>时</span>
+                  <input type="number" :value="today.s.minute" @input="nowProcess('minute', $event.target.value)" placeholder="分" size="2">
+                  <span>分</span>
+                  <input type="number" :value="today.s.seconds" @input="nowProcess('seconds', $event.target.value)" placeholder="秒" size="2">
+                  <span>秒</span>
+                </div>
+                <div class="nav-buttons">
+                  <button class="nav-btn" @click="nextday(-1)">前一天 (J)</button>
+                  <button class="nav-btn" @click="nextday(1)">后一天 (K)</button>
+                  <button class="nav-btn" @click="nextHour(-1)">前1小时 (N)</button>
+                  <button class="nav-btn" @click="nextHour(1)">后1小时 (M)</button>
+                  <button class="nav-btn" @click="nextMinute(-1)">前1分钟 (D)</button>
+                  <button class="nav-btn" @click="nextMinute(1)">后1分钟 (F)</button>
+                  <button class="nav-btn" @click="now.value = new Date(); intIdx = makeInterval(); paint();">今天 (H)</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -687,6 +914,7 @@
                 <label><input type="checkbox" v-model="settings.s.show24JieqiClockwise"> 顺时针 (L)</label>
                 <label><input type="checkbox" v-model="settings.s.show28Xiu"> 28宿</label>
                 <label><input type="checkbox" v-model="settings.s.showDouJian"> 斗建年</label>
+                <label><input type="checkbox" v-model="settings.s.show10Yueli"> 十月历</label>
               </div>
             </div>
 
