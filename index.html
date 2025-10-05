@@ -195,6 +195,37 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .time-span-input label {
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      min-width: 100px;
+    }
+
+    .time-span-input input {
+      background-color: #404040;
+      border: 1px solid #666;
+      color: #e0e0e0;
+      padding: 4px 6px;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+
+    .time-span-input select {
+      background-color: #404040;
+      border: 1px solid #666;
+      color: #e0e0e0;
+      padding: 4px 6px;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+
+    .time-span-input .hint {
+      color: #888;
+      font-size: 0.8rem;
+      margin-left: 5px;
     }
 
     /* 快捷键说明 */
@@ -270,6 +301,11 @@
       background-color: #333333;
       color: #e0e0e0;
       font-size: 0.9rem;
+    }
+
+    /* 年份输入框更宽，以支持五位数字（如公元前年份） */
+    .time-control-group .time-inputs .year-input {
+      width: 70px;
     }
 
     .time-control-group .time-inputs span {
@@ -519,6 +555,10 @@
         font-size: 0.8rem;
       }
 
+      .time-control-group .time-inputs .year-input {
+        width: 60px;
+      }
+
       .nav-buttons {
         gap: 6px;
       }
@@ -582,7 +622,7 @@
           <h3>时间控制</h3>
           <div class="time-control-group">
             <div class="time-inputs">
-              <input type="number" :value="today.s.year" @input="nowProcess('year', $event.target.value)" placeholder="年" size="4">
+              <input type="number" :value="today.s.year" @input="nowProcess('year', $event.target.value)" placeholder="年" class="year-input">
               <span>年</span>
               <input type="number" :value="today.s.month" @input="nowProcess('month', $event.target.value)" placeholder="月" size="2">
               <span>月</span>
@@ -657,6 +697,20 @@
                 <label><input type="checkbox" v-model="settings.s.southUp"> 正南朝上 (Y)</label>
                 <label><input type="checkbox" v-model="settings.s.BeiDouFaceSouth"> 北斗面南 (W)</label>
                 <label><input type="checkbox" v-model="settings.s.showLine"> 行星连线 (B)</label>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <h4>时间设置</h4>
+              <div class="time-span-input">
+                <label>E/R 时间跨度：</label>
+                <input type="number" v-model.number="timeSpan" min="0.1" step="0.1" size="6">
+                <select v-model="timeUnit">
+                  <option value="日">天</option>
+                  <option value="月">月</option>
+                  <option value="年">年</option>
+                </select>
+                <span class="hint">E后退，R前进</span>
               </div>
             </div>
           </div>

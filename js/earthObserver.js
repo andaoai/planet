@@ -1676,54 +1676,71 @@ const app = {
       killInterval();
       if (k == 74) { // J
         nextday(-1);
+        syncTimeToAllViews();
       } else if (k == 75) { // K
         nextday(1);
+        syncTimeToAllViews();
       } else if (k == 72) { // H
         now.value = new Date();
         intIdx = makeInterval();
         paint();
+        syncTimeToAllViews();
       } else if (k == 73) { // I
         settings.s.faceMode = !settings.s.faceMode;
         resetCanvas();
         paint();
+        syncTimeToAllViews();
       } else if (k == 79) { // O
         settings.s.guijiMode = !settings.s.guijiMode;
         resetCanvas();
         paint();
+        syncTimeToAllViews();
       }else if(k == 85) { // U 显示与否太阳系轨道
         settings.s.showSunPlanetTrack = !settings.s.showSunPlanetTrack;
         paint();
+        syncTimeToAllViews();
       }else if(k == 78) { // N 前跳一小时
         nextHour(-1);
+        syncTimeToAllViews();
       }else if(k == 77){ // M 后跳一小时
         nextHour(1);
+        syncTimeToAllViews();
       }else if(k == 68){ // D 前跳一分钟
         nextMinute(-1);
+        syncTimeToAllViews();
       }else if(k == 70){ // F 后跳一分钟
         nextMinute(1);
+        syncTimeToAllViews();
       }else if(k == 89){ // Y 正南方朝上开关
         settings.s.southUp = !settings.s.southUp;
         paint();
+        syncTimeToAllViews();
       }else if(k == 76){ // L 切换24节气顺逆时针
         settings.s.show24JieqiClockwise = !settings.s.show24JieqiClockwise;
         paint();
+        syncTimeToAllViews();
       }else if(k == 66){ // B 切换行星与地球连线
         settings.s.showLine = !settings.s.showLine;
         paint();
+        syncTimeToAllViews();
       }else if(k == 80){ // P 切换是否显示行星名与数据
         settings.s.showPlanetData = !settings.s.showPlanetData;
         paint();
+        syncTimeToAllViews();
       }else if(k == 81){ // Q 切换至黄道俯视面
         settings.s.useEcliptic = !settings.s.useEcliptic;
         paint();
+        syncTimeToAllViews();
       }else if(k == 65){ // A 回到历元1962/2/5
         now.value = new Date(1962,1,5);
         paint();
+        syncTimeToAllViews();
       }else if(k == 90){ // Z 跳到当天的 06:00:00
         now.value.setHours(6);
         now.value.setMinutes(0);
         now.value.setSeconds(getTrueSolarTimeDiff());
         paint();
+        syncTimeToAllViews();
       }else if(k == 88){ // X 跳到当天的 00:00:00
         if(!event.shiftKey){
           now.value.setDate(now.value.getDate() + (now.value.getHours() < 12 ? 0 : 1));
@@ -1732,14 +1749,17 @@ const app = {
         now.value.setMinutes(0);
         now.value.setSeconds(getTrueSolarTimeDiff());
         paint();
+        syncTimeToAllViews();
       }else if(k == 67){ // C 跳到当天的 18:00:00
         now.value.setHours(18);
         now.value.setMinutes(0);
         now.value.setSeconds(getTrueSolarTimeDiff());
         paint();
+        syncTimeToAllViews();
       }else if(k == 87){ // W 切换北斗视图
         settings.s.BeiDouFaceSouth = !settings.s.BeiDouFaceSouth;
         paint();
+        syncTimeToAllViews();
       }else if(k == 32){ // 空格键，暂停/播放太阳系动画
         event.preventDefault();
         if (window.solarSystemVisualizer) {
@@ -1764,12 +1784,15 @@ const app = {
       }else if(k == 84){ // T, 切换是否展示行星距离
         settings.s.showPlanetDistance = !settings.s.showPlanetDistance;
         paint();
+        syncTimeToAllViews();
       }else if(k == 83){ // S, 切换新模式下（不展示行星距离）是否用赤纬绘制
         settings.s.useDecAndElipticInNoDistanceMode = !settings.s.useDecAndElipticInNoDistanceMode;
         paint();
+        syncTimeToAllViews();
       }else if(k == 71){ // G, 切换28宿用360度或者365.25度划分
         settings.s.use360 = !settings.s.use360;
         paint();
+        syncTimeToAllViews();
       }
     }
 
