@@ -718,6 +718,35 @@ const app = {
     const tiangan = CALENDAR.TIANGAN;
     const dizhi = CALENDAR.DIZHI;
     const dayMicroSeconds = CALENDAR.DAY_MILLISECONDS;
+
+    // 天干五行映射
+    const tianganWuxing = {
+      '甲': '木', '乙': '木',
+      '丙': '火', '丁': '火',
+      '戊': '土', '己': '土',
+      '庚': '金', '辛': '金',
+      '壬': '水', '癸': '水'
+    };
+
+    // 地支五行映射
+    const dizhiWuxing = {
+      '子': '水', '丑': '土', '寅': '木', '卯': '木',
+      '辰': '土', '巳': '火', '午': '火', '未': '土',
+      '申': '金', '酉': '金', '戌': '土', '亥': '水'
+    };
+
+    // 获取干支的五行属性
+    function getWuxing(ganzhi) {
+      if (!ganzhi || ganzhi.length < 2) {
+        return { tiangan: '木', dizhi: '木' };
+      }
+      const tg = ganzhi[0];
+      const dz = ganzhi[1];
+      return {
+        tiangan: tianganWuxing[tg] || '木',
+        dizhi: dizhiWuxing[dz] || '木'
+      };
+    }
     function getOriginOffset(){
       return parseInt((getPureDate(now.value) - initDay) / dayMicroSeconds);
     }
@@ -2208,15 +2237,30 @@ const app = {
       const currentTime = now.value.getTime();
       try {
         const l = Lunar.fromDate(getJulianDate(now.value)[0]);
+        const year = l.getYearInGanZhi();
+        const month = l.getMonthInGanZhiExact();
+        const day = l.getDayInGanZhiExact();
+        const time = l.getTimeInGanZhi();
+
         return {
-          year: l.getYearInGanZhi(),
-          month: l.getMonthInGanZhiExact(),
-          day: l.getDayInGanZhiExact(),
-          time: l.getTimeInGanZhi()
+          year: year,
+          month: month,
+          day: day,
+          time: time,
+          yearWuxing: getWuxing(year),
+          monthWuxing: getWuxing(month),
+          dayWuxing: getWuxing(day),
+          timeWuxing: getWuxing(time)
         };
       } catch (e) {
         // 如果计算失败，返回默认值
-        return { year: '甲子', month: '甲子', day: '甲子', time: '甲子' };
+        return {
+          year: '甲子', month: '甲子', day: '甲子', time: '甲子',
+          yearWuxing: { tiangan: '木', dizhi: '木' },
+          monthWuxing: { tiangan: '木', dizhi: '木' },
+          dayWuxing: { tiangan: '木', dizhi: '木' },
+          timeWuxing: { tiangan: '木', dizhi: '木' }
+        };
       }
     }),
     lunarInfo: Vue.computed(() => {

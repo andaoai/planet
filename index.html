@@ -402,6 +402,37 @@
       font-size: 0.85rem;
     }
 
+    /* 五行属性样式 */
+    .wuxing-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      margin-left: 6px;
+    }
+
+    .wuxing-tiangan {
+      color: #ffa500;
+      font-weight: bold;
+    }
+
+    .wuxing-dizhi {
+      color: #87ceeb;
+      font-weight: bold;
+    }
+
+    .wuxing-separator {
+      color: #888;
+      font-size: 0.7rem;
+    }
+
+    /* 五行颜色 */
+    .wuxing-wood { color: #228b22; }
+    .wuxing-fire { color: #ff4500; }
+    .wuxing-earth { color: #8b4513; }
+    .wuxing-metal { color: #708090; }
+    .wuxing-water { color: #4682b4; }
+
     .doujian-year {
       color: #ff6347;
       font-weight: bold;
@@ -829,15 +860,51 @@
                 <div class="calendar-content">
                   <div class="calendar-item">
                     <span class="ganzhi-year">{{ ganzhiCalendar?.year || '甲子' }}年</span>
+                    <span class="wuxing-container">
+                      <span class="wuxing-tiangan" :class="'wuxing-' + ganzhiCalendar?.yearWuxing?.tiangan">
+                        {{ ganzhiCalendar?.yearWuxing?.tiangan || '木' }}
+                      </span>
+                      <span class="wuxing-separator">|</span>
+                      <span class="wuxing-dizhi" :class="'wuxing-' + ganzhiCalendar?.yearWuxing?.dizhi">
+                        {{ ganzhiCalendar?.yearWuxing?.dizhi || '木' }}
+                      </span>
+                    </span>
                   </div>
                   <div class="calendar-item">
                     <span class="ganzhi-month">{{ ganzhiCalendar?.month || '甲子' }}月</span>
+                    <span class="wuxing-container">
+                      <span class="wuxing-tiangan" :class="'wuxing-' + ganzhiCalendar?.monthWuxing?.tiangan">
+                        {{ ganzhiCalendar?.monthWuxing?.tiangan || '木' }}
+                      </span>
+                      <span class="wuxing-separator">|</span>
+                      <span class="wuxing-dizhi" :class="'wuxing-' + ganzhiCalendar?.monthWuxing?.dizhi">
+                        {{ ganzhiCalendar?.monthWuxing?.dizhi || '木' }}
+                      </span>
+                    </span>
                   </div>
                   <div class="calendar-item">
                     <span class="ganzhi-day">{{ ganzhiCalendar?.day || '甲子' }}日</span>
+                    <span class="wuxing-container">
+                      <span class="wuxing-tiangan" :class="'wuxing-' + ganzhiCalendar?.dayWuxing?.tiangan">
+                        {{ ganzhiCalendar?.dayWuxing?.tiangan || '木' }}
+                      </span>
+                      <span class="wuxing-separator">|</span>
+                      <span class="wuxing-dizhi" :class="'wuxing-' + ganzhiCalendar?.dayWuxing?.dizhi">
+                        {{ ganzhiCalendar?.dayWuxing?.dizhi || '木' }}
+                      </span>
+                    </span>
                   </div>
                   <div class="calendar-item">
                     <span class="ganzhi-hour">{{ ganzhiCalendar?.time || '甲子' }}时辰</span>
+                    <span class="wuxing-container">
+                      <span class="wuxing-tiangan" :class="'wuxing-' + ganzhiCalendar?.timeWuxing?.tiangan">
+                        {{ ganzhiCalendar?.timeWuxing?.tiangan || '木' }}
+                      </span>
+                      <span class="wuxing-separator">|</span>
+                      <span class="wuxing-dizhi" :class="'wuxing-' + ganzhiCalendar?.timeWuxing?.dizhi">
+                        {{ ganzhiCalendar?.timeWuxing?.dizhi || '木' }}
+                      </span>
+                    </span>
                   </div>
                 </div>
               </div>
