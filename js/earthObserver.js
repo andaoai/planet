@@ -2139,6 +2139,7 @@ const app = {
       showOrbits: true,
       showLabels: true,
       showCoords: false,
+      showDizhi: true,
       animationSpeed: 0
     });
 
@@ -2148,6 +2149,7 @@ const app = {
         window.solarSystemVisualizer.showOrbits = solarSystemSettings.showOrbits;
         window.solarSystemVisualizer.showLabels = solarSystemSettings.showLabels;
         window.solarSystemVisualizer.showCoords = solarSystemSettings.showCoords;
+        window.solarSystemVisualizer.showDizhi = solarSystemSettings.showDizhi;
         window.solarSystemVisualizer.animationSpeed = parseInt(solarSystemSettings.animationSpeed);
         window.solarSystemVisualizer.update();
       }

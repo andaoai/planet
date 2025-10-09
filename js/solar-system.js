@@ -15,6 +15,7 @@ class SolarSystemVisualizer {
         this.showOrbits = true;
         this.showLabels = true;
         this.showCoords = false;
+        this.showDizhi = true;
 
         // 画布尺寸
         this.canvasSize = 1000;
@@ -49,6 +50,22 @@ class SolarSystemVisualizer {
             orbitRadius: 25, // 月球相对于地球的轨道半径
             isMoon: true
         };
+
+        // 十二地支配置 - 每个地支占30度
+        this.dizhi = [
+            { name: '子', startAngle: 345, endAngle: 15 },      // 345°-15° (正北，跨越0度)
+            { name: '丑', startAngle: 315, endAngle: 345 },     // 315°-345° (修正)
+            { name: '寅', startAngle: 285, endAngle: 315 },     // 285°-315° (修正)
+            { name: '卯', startAngle: 255, endAngle: 285 },     // 255°-285° (正东，修正)
+            { name: '辰', startAngle: 225, endAngle: 255 },     // 225°-255° (修正)
+            { name: '巳', startAngle: 195, endAngle: 225 },     // 195°-225° (修正)
+            { name: '午', startAngle: 165, endAngle: 195 },     // 165°-195° (正南)
+            { name: '未', startAngle: 135, endAngle: 165 },     // 135°-165° (修正)
+            { name: '申', startAngle: 105, endAngle: 135 },     // 105°-135° (修正)
+            { name: '酉', startAngle: 75, endAngle: 105 },      // 75°-105° (正西，修正)
+            { name: '戌', startAngle: 45, endAngle: 75 },       // 45°-75° (修正)
+            { name: '亥', startAngle: 15, endAngle: 45 }        // 15°-45° (修正)
+        ];
     }
 
     init(canvasElement) {
@@ -177,6 +194,11 @@ class SolarSystemVisualizer {
                 ctx.lineWidth = 0.5;
                 ctx.stroke();
             }
+
+            // 绘制十二地支位置
+            if (this.showDizhi) {
+                this.drawDizhiPositions(ctx, centerX, centerY);
+            }
         }
 
         // 绘制太阳
@@ -248,6 +270,100 @@ class SolarSystemVisualizer {
                 ctx.fillText(this.moon.name, moonX, moonY - this.moon.radius - 3);
             }
         }
+    }
+
+    // 绘制十二地支位置
+    drawDizhiPositions(ctx, centerX, centerY) {
+        const maxOrbitRadius = 460; // 使用最外层轨道半径
+        const textRadius = maxOrbitRadius + 20; // 地支文字位置
+
+        ctx.save();
+
+        this.dizhi.forEach(dizhi => {
+            // 计算地支中心角度（处理跨越0度的情况）
+            let centerAngle;
+            if (dizhi.startAngle > dizhi.endAngle) {
+                // 跨越0度的情况，如子(345°-15°)
+                centerAngle = ((dizhi.startAngle + dizhi.endAngle + 360) / 2) % 360;
+            } else {
+                centerAngle = (dizhi.startAngle + dizhi.endAngle) / 2;
+            }
+
+            // 将角度转换为弧度（从正北开始顺时针）
+            const angleRad = (centerAngle - 90) * Math.PI / 180; // 调整起始点为正北
+
+            // 计算地支标记位置
+            const markerX = centerX + Math.cos(angleRad) * maxOrbitRadius;
+            const markerY = centerY + Math.sin(angleRad) * maxOrbitRadius;
+
+            // 计算地支文字位置
+            const textX = centerX + Math.cos(angleRad) * textRadius;
+            const textY = centerY + Math.sin(angleRad) * textRadius;
+
+            // 绘制地支弧形区域
+            if (dizhi.startAngle > dizhi.endAngle) {
+                // 跨越0度的情况，只绘制一个连续的扇形，但处理角度计算
+                const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+                const endRad = (dizhi.endAngle + 360 - 90) * Math.PI / 180; // 将结束角度加上360度
+
+                // 绘制外弧
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, maxOrbitRadius + 10, startRad, endRad, false);
+
+                // 绘制内弧（反向）
+                ctx.arc(centerX, centerY, maxOrbitRadius - 10, endRad, startRad, true);
+                ctx.closePath();
+
+                ctx.fillStyle = 'rgba(255, 107, 107, 0.15)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 107, 107, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            } else {
+                // 正常情况
+                const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+                const endRad = (dizhi.endAngle - 90) * Math.PI / 180;
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, maxOrbitRadius + 10, startRad, endRad, false);
+                ctx.arc(centerX, centerY, maxOrbitRadius - 10, endRad, startRad, true);
+                ctx.closePath();
+
+                ctx.fillStyle = 'rgba(255, 107, 107, 0.15)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 107, 107, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // 绘制从中心到地支边界的引导线
+            ctx.beginPath();
+            const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+            const endRad = (dizhi.startAngle > dizhi.endAngle ?
+                (dizhi.endAngle + 360 - 90) : (dizhi.endAngle - 90)) * Math.PI / 180;
+
+            // 绘制地支边界的两条线
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + Math.cos(startRad) * (maxOrbitRadius + 15),
+                      centerY + Math.sin(startRad) * (maxOrbitRadius + 15));
+
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + Math.cos(endRad) * (maxOrbitRadius + 15),
+                      centerY + Math.sin(endRad) * (maxOrbitRadius + 15));
+
+            ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            // 绘制地支文字
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = 'bold 14px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dizhi.name, textX, textY);
+        });
+
+        ctx.restore();
     }
 
     // 时间控制函数
