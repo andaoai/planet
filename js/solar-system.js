@@ -66,6 +66,22 @@ class SolarSystemVisualizer {
             { name: '戌', startAngle: 45, endAngle: 75 },       // 45°-75° (修正)
             { name: '亥', startAngle: 15, endAngle: 45 }        // 15°-45° (修正)
         ];
+
+        // 木星十二地支配置（十二次）- 与地球地支相反
+        this.jupiterDizhi = [
+            { name: '子', startAngle: 165, endAngle: 195 },      // 165°-195° (地球午位)
+            { name: '丑', startAngle: 135, endAngle: 165 },      // 135°-165° (地球未位)
+            { name: '寅', startAngle: 105, endAngle: 135 },      // 105°-135° (地球申位)
+            { name: '卯', startAngle: 75, endAngle: 105 },       // 75°-105° (地球酉位)
+            { name: '辰', startAngle: 45, endAngle: 75 },        // 45°-75° (地球戌位)
+            { name: '巳', startAngle: 15, endAngle: 45 },        // 15°-45° (地球亥位)
+            { name: '午', startAngle: 345, endAngle: 15 },       // 345°-15° (地球子位，跨越0度)
+            { name: '未', startAngle: 315, endAngle: 345 },      // 315°-345° (地球丑位)
+            { name: '申', startAngle: 285, endAngle: 315 },      // 285°-315° (地球寅位)
+            { name: '酉', startAngle: 255, endAngle: 285 },      // 255°-285° (地球卯位)
+            { name: '戌', startAngle: 225, endAngle: 255 },      // 225°-255° (地球辰位)
+            { name: '亥', startAngle: 195, endAngle: 225 }       // 195°-225° (地球巳位)
+        ];
     }
 
     init(canvasElement) {
@@ -198,6 +214,7 @@ class SolarSystemVisualizer {
             // 绘制十二地支位置
             if (this.showDizhi) {
                 this.drawDizhiPositions(ctx, centerX, centerY);
+                this.drawJupiterDizhiPositions(ctx, centerX, centerY);
             }
         }
 
@@ -272,10 +289,11 @@ class SolarSystemVisualizer {
         }
     }
 
-    // 绘制十二地支位置
+    // 绘制十二地支位置 - 以地球轨道为中心
     drawDizhiPositions(ctx, centerX, centerY) {
-        const maxOrbitRadius = 460; // 使用最外层轨道半径
-        const textRadius = maxOrbitRadius + 20; // 地支文字位置
+        const earth = this.planets.find(p => p.englishName === 'Earth');
+        const earthOrbitRadius = earth ? earth.orbitRadius : 130; // 地球轨道半径
+        const textRadius = earthOrbitRadius + 25; // 地支文字位置
 
         ctx.save();
 
@@ -292,15 +310,11 @@ class SolarSystemVisualizer {
             // 将角度转换为弧度（从正北开始顺时针）
             const angleRad = (centerAngle - 90) * Math.PI / 180; // 调整起始点为正北
 
-            // 计算地支标记位置
-            const markerX = centerX + Math.cos(angleRad) * maxOrbitRadius;
-            const markerY = centerY + Math.sin(angleRad) * maxOrbitRadius;
-
             // 计算地支文字位置
             const textX = centerX + Math.cos(angleRad) * textRadius;
             const textY = centerY + Math.sin(angleRad) * textRadius;
 
-            // 绘制地支弧形区域
+            // 绘制地支弧形区域 - 在地球轨道上
             if (dizhi.startAngle > dizhi.endAngle) {
                 // 跨越0度的情况，只绘制一个连续的扇形，但处理角度计算
                 const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
@@ -308,10 +322,10 @@ class SolarSystemVisualizer {
 
                 // 绘制外弧
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, maxOrbitRadius + 10, startRad, endRad, false);
+                ctx.arc(centerX, centerY, earthOrbitRadius + 15, startRad, endRad, false);
 
                 // 绘制内弧（反向）
-                ctx.arc(centerX, centerY, maxOrbitRadius - 10, endRad, startRad, true);
+                ctx.arc(centerX, centerY, earthOrbitRadius - 15, endRad, startRad, true);
                 ctx.closePath();
 
                 ctx.fillStyle = 'rgba(255, 107, 107, 0.15)';
@@ -325,8 +339,8 @@ class SolarSystemVisualizer {
                 const endRad = (dizhi.endAngle - 90) * Math.PI / 180;
 
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, maxOrbitRadius + 10, startRad, endRad, false);
-                ctx.arc(centerX, centerY, maxOrbitRadius - 10, endRad, startRad, true);
+                ctx.arc(centerX, centerY, earthOrbitRadius + 15, startRad, endRad, false);
+                ctx.arc(centerX, centerY, earthOrbitRadius - 15, endRad, startRad, true);
                 ctx.closePath();
 
                 ctx.fillStyle = 'rgba(255, 107, 107, 0.15)';
@@ -342,14 +356,14 @@ class SolarSystemVisualizer {
             const endRad = (dizhi.startAngle > dizhi.endAngle ?
                 (dizhi.endAngle + 360 - 90) : (dizhi.endAngle - 90)) * Math.PI / 180;
 
-            // 绘制地支边界的两条线
+            // 绘制地支边界的两条线（只到地球轨道附近）
             ctx.moveTo(centerX, centerY);
-            ctx.lineTo(centerX + Math.cos(startRad) * (maxOrbitRadius + 15),
-                      centerY + Math.sin(startRad) * (maxOrbitRadius + 15));
+            ctx.lineTo(centerX + Math.cos(startRad) * (earthOrbitRadius + 20),
+                      centerY + Math.sin(startRad) * (earthOrbitRadius + 20));
 
             ctx.moveTo(centerX, centerY);
-            ctx.lineTo(centerX + Math.cos(endRad) * (maxOrbitRadius + 15),
-                      centerY + Math.sin(endRad) * (maxOrbitRadius + 15));
+            ctx.lineTo(centerX + Math.cos(endRad) * (earthOrbitRadius + 20),
+                      centerY + Math.sin(endRad) * (earthOrbitRadius + 20));
 
             ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
             ctx.lineWidth = 0.5;
@@ -357,7 +371,98 @@ class SolarSystemVisualizer {
 
             // 绘制地支文字
             ctx.fillStyle = '#ff6b6b';
-            ctx.font = 'bold 14px monospace';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dizhi.name, textX, textY);
+        });
+
+        ctx.restore();
+    }
+
+    // 绘制木星十二地支位置（十二次）- 以木星轨道为中心
+    drawJupiterDizhiPositions(ctx, centerX, centerY) {
+        const jupiter = this.planets.find(p => p.englishName === 'Jupiter');
+        const jupiterOrbitRadius = jupiter ? jupiter.orbitRadius : 240; // 木星轨道半径
+        const textRadius = jupiterOrbitRadius + 25; // 木星地支文字位置
+
+        ctx.save();
+
+        this.jupiterDizhi.forEach(dizhi => {
+            // 计算地支中心角度（处理跨越0度的情况）
+            let centerAngle;
+            if (dizhi.startAngle > dizhi.endAngle) {
+                // 跨越0度的情况，如午(345°-15°)
+                centerAngle = ((dizhi.startAngle + dizhi.endAngle + 360) / 2) % 360;
+            } else {
+                centerAngle = (dizhi.startAngle + dizhi.endAngle) / 2;
+            }
+
+            // 将角度转换为弧度（从正北开始顺时针）
+            const angleRad = (centerAngle - 90) * Math.PI / 180; // 调整起始点为正北
+
+            // 计算地支文字位置
+            const textX = centerX + Math.cos(angleRad) * textRadius;
+            const textY = centerY + Math.sin(angleRad) * textRadius;
+
+            // 绘制木星地支弧形区域 - 在木星轨道上
+            if (dizhi.startAngle > dizhi.endAngle) {
+                // 跨越0度的情况，只绘制一个连续的扇形，但处理角度计算
+                const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+                const endRad = (dizhi.endAngle + 360 - 90) * Math.PI / 180; // 将结束角度加上360度
+
+                // 绘制外弧
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, jupiterOrbitRadius + 15, startRad, endRad, false);
+
+                // 绘制内弧（反向）
+                ctx.arc(centerX, centerY, jupiterOrbitRadius - 15, endRad, startRad, true);
+                ctx.closePath();
+
+                ctx.fillStyle = 'rgba(218, 165, 32, 0.15)'; // 木星金色
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(218, 165, 32, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            } else {
+                // 正常情况
+                const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+                const endRad = (dizhi.endAngle - 90) * Math.PI / 180;
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, jupiterOrbitRadius + 15, startRad, endRad, false);
+                ctx.arc(centerX, centerY, jupiterOrbitRadius - 15, endRad, startRad, true);
+                ctx.closePath();
+
+                ctx.fillStyle = 'rgba(218, 165, 32, 0.15)'; // 木星金色
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(218, 165, 32, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // 绘制从中心到地支边界的引导线
+            ctx.beginPath();
+            const startRad = (dizhi.startAngle - 90) * Math.PI / 180;
+            const endRad = (dizhi.startAngle > dizhi.endAngle ?
+                (dizhi.endAngle + 360 - 90) : (dizhi.endAngle - 90)) * Math.PI / 180;
+
+            // 绘制地支边界的两条线（只到木星轨道附近）
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + Math.cos(startRad) * (jupiterOrbitRadius + 20),
+                      centerY + Math.sin(startRad) * (jupiterOrbitRadius + 20));
+
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + Math.cos(endRad) * (jupiterOrbitRadius + 20),
+                      centerY + Math.sin(endRad) * (jupiterOrbitRadius + 20));
+
+            ctx.strokeStyle = 'rgba(218, 165, 32, 0.3)';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            // 绘制地支文字
+            ctx.fillStyle = '#DAA520'; // 木星金色
+            ctx.font = 'bold 12px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(dizhi.name, textX, textY);
